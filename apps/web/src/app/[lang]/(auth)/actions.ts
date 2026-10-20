@@ -21,6 +21,12 @@ import {
   requestMessages,
   restoreProfileLanguage,
 } from "@/lib/i18n/server";
+import {
+  acceptInviteToken,
+  dashboardAfterAccept,
+  INVITE_COOKIE,
+  isInviteToken,
+} from "@/lib/invites";
 import { createClient } from "@/lib/supabase/server";
 
 const RATE_LIMIT_CODES = new Set([
@@ -125,6 +131,15 @@ export async function signIn(
   }
 
   await restoreProfileLanguage(supabase, data.user.id);
+
+  // A parent who came from a co-parent invite link accepts it now.
+  const cookieStore = await cookies();
+  const inviteToken = cookieStore.get(INVITE_COOKIE)?.value;
+  if (isInviteToken(inviteToken)) {
+    const errorCode = await acceptInviteToken(supabase, inviteToken);
+    cookieStore.delete({ name: INVITE_COOKIE, path: "/" });
+    redirect(dashboardAfterAccept(errorCode));
+  }
   redirect("/dashboard");
 }
 

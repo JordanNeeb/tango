@@ -84,8 +84,22 @@ parents who ask.
 - One co-parent pair is one family. An invite between two parents who already
   share a family, or who already have a pending invite between them in either
   direction, is blocked; the parent is pointed to the existing family or invite.
-- A parent can belong to multiple families from v1 (one per co-parent), and the
-  UI lets them switch between families.
+- A parent can belong to multiple families from v1 (one per co-parent).
+  - With one co-parent there is no family switcher, and the dashboard header
+    shows the parent's own name.
+  - With two or more co-parents, the header menu shows the selected
+    co-parent's name instead, its dropdown lists every co-parent, and clicking
+    one switches the active family. The active family is remembered in the
+    browser, not stored on the account. Your profile and Sign out stay in the same
+    dropdown. **Assumption.**
+  - Co-parent settings live in a Co-parents section of the main Settings page.
+  - **Deleting a co-parent** needs the parent to type the co-parent's name. It
+    only hides that family from the parent who deleted it: it leaves their menu
+    and nothing about it shows on their screens. No data is erased, and the
+    Co-parents section can restore it.
+  - The other parent keeps full access, can keep sending messages, and is not
+    notified; the deleting parent sees those messages once they restore the
+    co-parent. **Assumption.**
 - Accepting an invite requires a verified email address, since invites are
   matched by email.
 - Children: name and birthdate only in v1, added after the family exists.
@@ -283,8 +297,8 @@ Not legal advice; the pre-launch lawyer review confirms this.
 model.
 
 - **Free** professional accounts for lawyers, mediators, and other family-law
-  professionals. Anyone can sign up and choose a professional type; there is
-  **no credential check** in v1.
+  professionals. Anyone can sign up as a professional; there are no
+  professional types and **no credential check** in v1.
 - A professional sees nothing until a **parent invites them** to a specific
   family by name and email, and they accept.
 - Access is read-only and limited to the areas the inviting parent chooses
@@ -327,9 +341,10 @@ fee waiver, and professional account.
 
 - **Users/profiles:** identity, name, language preference, subscription tier
   and status.
-- **Professional accounts:** profile, professional type; per-family access
+- **Professional accounts:** profile (name lives there); per-family access
   grants with the granted areas, inviting parent, and revocation.
-- **Families:** members (exactly two parents in v1), time zone.
+- **Families:** members (exactly two parents in v1), time zone, and per
+  parent whether they have deleted (hidden) the family and when.
 - **Children:** name, birthdate.
 - **Conversations:** subject, started by, started at; append-only.
 - **Messages:** append-only; conversation, sender, server timestamp, body,

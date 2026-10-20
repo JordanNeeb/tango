@@ -37,6 +37,32 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"family_invites": {
+                  Row: {
+                    "accepted_at": string | null,"created_at": string,"expires_at": string,"family_id": string | null,"id": string,"invited_by": string,"invited_email": string,"last_sent_at": string | null,"status": string,"time_zone": string,"token": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string | null,"created_at"?: string,"expires_at"?: string,"family_id"?: string | null,"id"?: string,"invited_by": string,"invited_email": string,"last_sent_at"?: string | null,"status"?: string,"time_zone": string,"token"?: string
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"created_at"?: string,"expires_at"?: string,"family_id"?: string | null,"id"?: string,"invited_by"?: string,"invited_email"?: string,"last_sent_at"?: string | null,"status"?: string,"time_zone"?: string,"token"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "family_invites_family_id_fkey"
+      columns: ["family_id"]
+isOneToOne: false
+      referencedRelation: "families"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "family_invites_invited_by_fkey"
+      columns: ["invited_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"family_members": {
                   Row: {
                     "family_id": string,"joined_at": string,"user_id": string
@@ -103,7 +129,21 @@ isOneToOne: true
             [_ in never]: never
           }
           Functions: {
-            "set_account_type":
+            "accept_family_invite":
+{ Args: { "invite_token": string }; Returns: string
+                           },
+"create_family_invite":
+{ Args: { "email": string,"time_zone": string }; Returns: string
+                           },
+"get_family_invite":
+{ Args: { "invite_token": string }; Returns: {
+              "expired": boolean,"invited_email": string,"inviter_name": string
+            }[]
+                           },
+"mark_family_invite_sent":
+{ Args: { "invite_id": string }; Returns: undefined
+                           },
+"set_account_type":
 { Args: { "requested": string }; Returns: undefined
                            }
           }

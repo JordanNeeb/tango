@@ -2,7 +2,7 @@ import { type Messages } from "@tango/shared";
 
 type ErrorMessages = Messages["auth"]["errors"];
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type AuthField = "name" | "email" | "password";
 

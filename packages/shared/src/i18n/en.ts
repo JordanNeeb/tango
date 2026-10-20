@@ -85,6 +85,8 @@ export const en = {
       sessionExpired: 'Your reset link has expired. Request a new one.',
       signedOut: 'Your session has ended. Sign in again.',
       googleFailed: "Google sign-in didn't complete. Try again.",
+      inviteUnavailable: "This invite isn't available anymore.",
+      inviteExpired: 'This invite has expired. Ask your co-parent to send a new one.',
       unexpected: 'Something went wrong. Please try again.',
     },
   },
@@ -119,6 +121,34 @@ export const en = {
       emptyTitle: 'No families yet',
       emptyDescription:
         "When a parent invites you to their family, it appears here. You'll only see the records they choose to share.",
+    },
+    welcome: {
+      title: 'Welcome to Tango',
+      description:
+        "The first step is to add a co-parent. Invite them by email and we'll set up your family as soon as they accept.",
+      emailLabel: "Co-parent's email",
+      emailRequired: "Enter your co-parent's email address.",
+      send: 'Send invite',
+      sending: 'Sending',
+      pending: 'Invite sent to {email}. It expires on {date}.',
+      sendAgain: 'Send again',
+      sent: 'Invite sent.',
+      nameRequired: 'Add your name to your profile before inviting your co-parent.',
+      addName: 'Go to your profile',
+    },
+  },
+  invite: {
+    errors: {
+      nameRequired: 'Add your name to your profile before inviting your co-parent.',
+      selfInvite: "Enter your co-parent's email, not your own.",
+      alreadyPaired: "You're already co-parents with this person.",
+      pendingExists: "There's already a pending invite between you and this person.",
+      tooSoon: 'Wait a minute before sending again.',
+      inviteLimit: "You've sent 5 invites today. Try again tomorrow.",
+      sendFailed: "We couldn't send the email. Try again.",
+      unavailable: "This invite isn't available anymore.",
+      emailMismatch: 'This invite was sent to another email address.',
+      ownInvite: 'This is the invite you sent. Your co-parent needs to open it.',
     },
   },
   // "Learn more" and the screenshot text are Tailwind Plus placeholders, kept

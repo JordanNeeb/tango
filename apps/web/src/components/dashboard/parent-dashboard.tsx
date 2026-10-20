@@ -12,10 +12,20 @@ import {
 import { useMessages } from "@/lib/i18n/language-provider";
 
 import { DashboardShell, type NavigationItem, type TeamItem } from "./dashboard-shell";
+import { ParentWelcome, type WelcomeData } from "./parent-welcome";
 
 // The parent portal. Navigation and teams are still the Tailwind Plus
-// reference's placeholders; parent content comes in later features.
-export function ParentDashboard({ userName }: { userName: string }) {
+// reference's placeholders. Until the first co-parent accepts, the content is
+// the welcome page; parent content for families comes in later features.
+export function ParentDashboard({
+  userName,
+  welcome,
+  inviteError,
+}: {
+  userName: string;
+  welcome?: WelcomeData;
+  inviteError?: string;
+}) {
   const { dashboard } = useMessages();
 
   const navigation: NavigationItem[] = [
@@ -38,5 +48,9 @@ export function ParentDashboard({ userName }: { userName: string }) {
     { id: 3, name: dashboard.teams.workcation, href: "#", initial: "W", current: false },
   ];
 
-  return <DashboardShell userName={userName} navigation={navigation} teams={teams} />;
+  return (
+    <DashboardShell userName={userName} navigation={navigation} teams={teams}>
+      {welcome ? <ParentWelcome welcome={welcome} inviteError={inviteError} /> : null}
+    </DashboardShell>
+  );
 }

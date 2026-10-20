@@ -10,7 +10,13 @@ import { FormAlert, SubmitButton, TextField } from "./fields";
 import { GoogleSignInButton } from "./google-sign-in-button";
 import { useFocusFirstError } from "./use-focus-first-error";
 
-export function SignUpForm({ accountType }: { accountType: AccountType }) {
+export function SignUpForm({
+  accountType,
+  defaultEmail,
+}: {
+  accountType: AccountType;
+  defaultEmail?: string;
+}) {
   const { auth } = useMessages();
   const [state, formAction] = useActionState<ActionResult, FormData>(signUp, {});
   const formRef = useRef<HTMLFormElement>(null);
@@ -39,7 +45,7 @@ export function SignUpForm({ accountType }: { accountType: AccountType }) {
           type="email"
           label={auth.fields.email}
           autoComplete="email"
-          defaultValue={state.values?.email}
+          defaultValue={state.values?.email ?? defaultEmail}
           error={state.fieldErrors?.email}
         />
 

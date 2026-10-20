@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { AuthCard } from "@/components/auth/auth-card";
 import { SignUpForm } from "@/components/auth/sign-up-form";
 import { linkClass } from "@/components/auth/styles";
-import { isAccountType } from "@/lib/auth/validation";
+import { EMAIL_PATTERN, isAccountType } from "@/lib/auth/validation";
 import { pageMessages } from "@/lib/i18n/server";
 
 export async function generateMetadata({
@@ -17,15 +17,18 @@ export async function generateMetadata({
 }
 
 // The proxy already sends visitors without a valid type to /get-started; this
-// is the page's own check.
+// is the page's own check. An invite link adds `email`, which pre-fills the
+// still-editable email field.
 async function SignUpWithType({
   searchParams,
 }: {
   searchParams: PageProps<"/[lang]/sign-up">["searchParams"];
 }) {
-  const { type } = await searchParams;
+  const { type, email } = await searchParams;
   if (!isAccountType(type)) redirect("/get-started");
-  return <SignUpForm accountType={type} />;
+  const defaultEmail =
+    typeof email === "string" && email.length <= 254 && EMAIL_PATTERN.test(email) ? email : undefined;
+  return <SignUpForm accountType={type} defaultEmail={defaultEmail} />;
 }
 
 export default async function SignUpPage({

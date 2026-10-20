@@ -22,6 +22,8 @@ function urlErrors(auth: Messages["auth"]): Record<string, string> {
   return {
     "link-invalid": auth.errors.linkInvalid,
     "google-failed": auth.errors.googleFailed,
+    "invite-unavailable": auth.errors.inviteUnavailable,
+    "invite-expired": auth.errors.inviteExpired,
   };
 }
 function urlNotices(auth: Messages["auth"]): Record<string, string> {

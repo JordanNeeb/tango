@@ -86,7 +86,23 @@ export const fr: Messages = {
       sessionExpired: 'Votre lien de réinitialisation a expiré. Demandez-en un nouveau.',
       signedOut: 'Votre session a pris fin. Connectez-vous de nouveau.',
       googleFailed: "La connexion avec Google n'a pas abouti. Réessayez.",
+      inviteUnavailable: "Cette invitation n'est plus disponible.",
+      inviteExpired: "Cette invitation a expiré. Demandez à votre coparent d'en envoyer une nouvelle.",
       unexpected: "Une erreur s'est produite. Veuillez réessayer.",
+    },
+  },
+  invite: {
+    errors: {
+      nameRequired: "Ajoutez votre nom à votre profil avant d'inviter votre coparent.",
+      selfInvite: 'Entrez le courriel de votre coparent, pas le vôtre.',
+      alreadyPaired: 'Vous êtes déjà coparents avec cette personne.',
+      pendingExists: 'Il y a déjà une invitation en attente entre vous et cette personne.',
+      tooSoon: 'Attendez une minute avant de renvoyer.',
+      inviteLimit: "Vous avez envoyé 5 invitations aujourd'hui. Réessayez demain.",
+      sendFailed: "Nous n'avons pas pu envoyer le courriel. Réessayez.",
+      unavailable: "Cette invitation n'est plus disponible.",
+      emailMismatch: 'Cette invitation a été envoyée à une autre adresse courriel.',
+      ownInvite: "C'est l'invitation que vous avez envoyée. Votre coparent doit l'ouvrir.",
     },
   },
   dashboard: {
@@ -118,6 +134,20 @@ export const fr: Messages = {
       emptyTitle: "Aucune famille pour l'instant",
       emptyDescription:
         "Lorsqu'un parent vous invite dans sa famille, elle apparaît ici. Vous ne verrez que les dossiers qu'il choisit de partager.",
+    },
+    welcome: {
+      title: 'Bienvenue sur Tango',
+      description:
+        "La première étape consiste à ajouter un coparent. Invitez-le par courriel et nous créerons votre famille dès qu'il acceptera.",
+      emailLabel: 'Courriel du coparent',
+      emailRequired: "Entrez l'adresse courriel de votre coparent.",
+      send: "Envoyer l'invitation",
+      sending: 'Envoi',
+      pending: 'Invitation envoyée à {email}. Elle expire le {date}.',
+      sendAgain: 'Renvoyer',
+      sent: 'Invitation envoyée.',
+      nameRequired: "Ajoutez votre nom à votre profil avant d'inviter votre coparent.",
+      addName: 'Aller à votre profil',
     },
   },
   landing: {

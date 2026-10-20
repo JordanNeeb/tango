@@ -29,6 +29,9 @@ Do not renumber completed features; their archived specs refer to those IDs.
   - [ ] 16b. **Payment method** - Stripe Billing in CAD, card collected after sign-up
   - [ ] 16c. **Subscription charging** - first charge when the co-parent joins, and lapsed-parent restrictions
 - [ ] 5. **Family pairing** - final onboarding step: invite the co-parent by email (or accept an invite), create the family on acceptance, block duplicate pairings, and add children
+  - [x] 5a. **Co-parent invites** - invite the co-parent by email or accept an invite, create the family on acceptance, and block duplicate pairings
+  - [ ] 5b. **Children** - add children to the family
+  - [ ] 5c. **Co-parent switching and settings** - with two or more co-parents, the header menu shows the selected co-parent and switches between them; a Co-parents section in Settings deletes (hides) a co-parent after typing their name and restores deleted ones
 
 ### Messaging
 

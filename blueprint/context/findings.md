@@ -70,3 +70,35 @@
 **Why it matters:** `signInWithGoogle` sets `tango_account_type` only when the form carries a type and never clears it otherwise, and only `/auth/callback` deletes it. If a visitor starts Google sign-up from `/sign-up?type=professional`, leaves before returning to the callback (closes the Google tab or goes back), and within 10 minutes uses Google from the sign-in page, the callback still reads the cookie and `set_account_type` gives a new account (or an existing account whose type is still null) the earlier type. The spec contract says sign-in page calls set no cookie and a new Google account from the sign-in page has null. Impact is low: the type is self-declared, comes from the same browser's own earlier choice, and the RPC never overwrites a set type.
 **Suggested fix:** In `signInWithGoogle`, delete the cookie (`(await cookies()).delete({ name: ACCOUNT_TYPE_COOKIE, path: "/auth/callback" })`) when the form carries no valid type. No current requirement is lost.
 **Resolution:**
+
+### F-12 [P3] open - A failed send still consumes the 60-second throttle
+
+**File:** supabase/functions/send-family-invite/index.ts:104
+**Found:** 2026-10-20 by /audit independent (scope: current; lens: quality)
+**Why it matters:** `mark_family_invite_sent` commits `last_sent_at` before the provider call (lines 104-142). When Resend or Mailpit rejects or is unreachable, the parent sees "We couldn't send the email. Try again.", but pressing Send again within a minute returns `too_soon` ("Wait a minute before sending again"), which contradicts the message.
+**Suggested fix:** Either word `errors.sendFailed` as "Try again in a minute", or on a provider failure clear the mark (for example a second RPC that resets `last_sent_at` to its previous value for the inviter). No current requirement is lost with the copy change.
+**Resolution:**
+
+### F-13 [P3] unverified - Invite creation scans auth.users by lower(email)
+
+**File:** supabase/migrations/20261020102645_family_invites.sql:94
+**Found:** 2026-10-20 by /audit independent (scope: current; lens: performance)
+**Why it matters:** `where lower(u.email) = target_email` cannot use the auth schema's email index, so each invite creation may scan `auth.users`. Negligible at current scale; no profiling evidence.
+**Suggested fix:** If it shows up later, compare against `u.email` directly after confirming stored auth emails are always lowercase, or look up through `public.profiles` joined by id. No current requirement is lost.
+**Resolution:**
+
+### F-14 [P2] open - Send again is limited only to once a minute per invite, for 7 days
+
+**File:** supabase/migrations/20261020102645_family_invites.sql:162
+**Found:** 2026-10-20 by /audit independent (scope: current; lens: security, performance)
+**Why it matters:** `mark_family_invite_sent` is the only limit on email sends and allows one send per invite every 60 seconds for as long as the invite is pending (7 days). Calling `send-family-invite` directly (or pressing Send again) therefore emails the same address up to about 1,440 times a day per invite, and with up to 5 new invites a day a single account can keep dozens of live invites. Each email comes from Tango's domain with the inviter's free-text name, so one account can repeatedly mail a recipient and spend Resend quota and sender reputation in staging and production. F-11's cap limits how many addresses are reachable, not how often they are mailed.
+**Suggested fix:** Bound sends per invite in `mark_family_invite_sent`, for example a `send_count` column in this unpushed migration with a small maximum (such as 3 to 5 sends per invite, raising a new code mapped to copy), or a longer throttle after the first resend. No current requirement is lost; the owner picks the number.
+**Resolution:**
+
+### F-15 [P3] open - A parent who already has a family gets no result after following an invite link
+
+**File:** apps/web/src/app/[lang]/dashboard/page.tsx:87
+**Found:** 2026-10-20 by /audit independent (scope: current; lens: quality)
+**Why it matters:** `inviteError` is computed only when `welcome` is set, that is when the parent has no family. The plan lets a parent belong to several families, so a parent already paired with one co-parent can be invited by another. If that parent follows the link and the accept fails (`invite_unavailable` for an expired link while signed in, or `email_mismatch` when signed in with another account), they land on the regular dashboard with no message; a successful accept also shows nothing. The link silently appears to do nothing.
+**Suggested fix:** Show the mapped invite message on the dashboard regardless of `welcome` (for example the same `FormAlert` above the family dashboard content), or defer to 5c with an explicit spec note. No current requirement is lost.
+**Resolution:**

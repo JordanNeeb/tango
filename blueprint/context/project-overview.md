@@ -1,6 +1,6 @@
 # Tango - Project Overview
 
-<!-- blueprint:source-hash 42194ff0a3591f9adbdc81f387ae69becc6dc114bd50e9442250cce6c6fe3fed -->
+<!-- blueprint:source-hash 8ecd4cfd48b3b024d49e705e1e41f3ec9c06e43a0a36aded1c7a834e2e008c81 -->
 
 > A Canadian, bilingual co-parenting app (web first, then iOS and Android) that
 > gives separated parents a permanent court-ready record of messages and calls,
@@ -9,20 +9,25 @@
 
 ## Problem
 
-Separated parents coordinate messages, money, and parenting time through texts,
-email, and e-Transfers that leave no reliable record and hold no one to what was
-agreed. Tango competes with OurFamilyWizard (OFW) and TalkingParents: a
-permanent, verifiable record (messages, calls, access log), enforced calendar
-terms, and money that actually moves, priced about 20% below OFW and free for
-low-income parents who ask.
+Texts, email, and e-Transfers leave separated parents no reliable record and
+hold no one to what was agreed. Tango competes with OurFamilyWizard (OFW) and
+TalkingParents, priced about 20% below OFW and free for low-income parents who ask.
 
 ## Users
 
 - **Parents** - separated or divorced parents in Canada sharing children, often
   in high conflict. Each has their own account and subscription.
 - **Family** - one co-parent pair plus their shared children. A parent may
-  belong to several families (one per co-parent) and switches between them in
-  the UI. A family exists only once the invited co-parent accepts.
+  belong to several families (one per co-parent). A family exists only once the
+  invited co-parent accepts.
+  - One co-parent: no switcher; the header shows the parent's own name.
+  - Two or more: the header menu shows the selected co-parent; its dropdown
+    lists every co-parent (click switches the active family, remembered in the
+    browser, not on the account) plus Your profile and Sign out (assumption).
+  - Deleting a co-parent (Settings > Co-parents, typing their name) only hides
+    that family from the deleting parent; nothing is erased and it can be
+    restored there. The other parent keeps full access, can keep messaging, and
+    is not notified (assumption).
 - **Professionals** - lawyers, mediators, other family-law professionals. Free
   accounts, no credential check; they see a family only when a parent invites
   them, read-only, limited to granted areas.
@@ -64,10 +69,13 @@ verifiable record), **10-11** (agreement enforcement), **13-15** (real payments)
 4. **Bilingual foundation** - shared EN/FR dictionaries, `profiles.language`, language menu and dashboard Settings.
 24. **Landing page and dashboard** - public `/`, `/dashboard` shell.
 
-**Onboarding** (screens in order: family or practitioner, tier, sign up, payment, add or accept co-parent)
+**Onboarding** (31 done; screens in order: family or practitioner, tier, sign up, payment, add or accept co-parent)
 31. **Onboarding flow** - family-or-practitioner choice and step routing into the existing sign-up; practitioners skip tier and payment and land on a placeholder home.
 16. **Tiered subscriptions** - tier selection step, Stripe Billing in CAD, card collected at onboarding, first charge when the co-parent joins, lapsed restrictions.
-5. **Family pairing** - final step: invite the co-parent (or accept an invite, same screens before it); family created on acceptance; duplicates blocked; add children.
+5. **Family pairing** - final onboarding step.
+    - 5a. **Co-parent invites** - invite by email or accept an invite; family created on acceptance; duplicates blocked.
+    - 5b. **Children** - add children to the family.
+    - 5c. **Co-parent switching and settings** - header co-parent switcher with two or more co-parents; Settings > Co-parents deletes (hides) after typing the name and restores.
 
 **Messaging**
 6. **Subject conversations** - parent-titled conversations in one scrollable list, never closed; server timestamps; attachments (tier 1 1 GB cap); no edits or deletes.
@@ -124,7 +132,7 @@ no `UPDATE`/`DELETE` of content.
 
 ### families / family_members
 - `families`: `id`, `time_zone` (IANA), `created_at`; created only on invite acceptance
-- `family_members`: `family_id`, `user_id`, `joined_at`; unique pair; exactly two parents in v1
+- `family_members`: `family_id`, `user_id`, `joined_at`, `hidden_at` (nullable; set when this parent deletes the co-parent, cleared on restore; hides the family from this parent only); unique pair; exactly two parents in v1
 
 ### family_invites
 - `id`, `invited_email`, `invited_by`, `status` (`pending | accepted | expired`), `created_at`
@@ -161,7 +169,7 @@ no `UPDATE`/`DELETE` of content.
 - internal audit record; anyone checks a copy through the PDF's digital seal, not a Tango page
 
 ### professional_accounts and professional_grants
-- `professional_accounts`: `user_id`, `name`, `professional_type` (`lawyer | mediator | other`), `created_at`
+- `professional_accounts`: `user_id` (= `profiles.id`), `created_at`; created by a trigger when `profiles.account_type` becomes `professional`; no professional types; name lives on `profiles` (built in 31b)
 - `professional_grants`: `id`, `family_id`, `professional_id`, `granted_by`, `areas` (text[]), `status` (`invited | active | revoked`), `created_at`, `revoked_at`
 - the other parent is notified and sees every grant
 
@@ -233,7 +241,7 @@ no `UPDATE`/`DELETE` of content.
 - Design owned by the project owner: every UI element from the Tailwind Plus Catalyst UI kit (`design/references/tailwind-plus/catalyst-ui-kit/`), other Tailwind Plus references only where Catalyst has no fit; colours, logo, and branding set manually.
 - All UI, emails, notifications, and exports in English and French. Language menu on landing and auth pages; Settings > Language on the dashboard.
 - `/` landing (signed out), `/dashboard` (signed in); the logo always links home.
-- Main web screens (routes decided in feature specs): family setup and invite, children, conversations with search and tone meter, calls, calendar with requests, agreements, expenses, payments, support schedule, subscription and fee waiver, export, professional portal.
+- Main web screens (routes decided in feature specs): family setup and invite, children, conversations with search and tone meter, calls, calendar with requests, agreements, expenses, payments, support schedule, subscription and fee waiver, export, professional portal, Settings (language, Co-parents).
 
 ## Deployment
 
@@ -250,7 +258,6 @@ no `UPDATE`/`DELETE` of content.
 
 > Resolve in the plans, then re-run `/overview`.
 
-- **Practitioner placeholder home** until the professional portal (28); a professional account record is needed from onboarding (31).
 - **Recording storage location**; affidavit turnaround and whether tier 1 can buy one.
 - **Fee waiver link** in the tier step arrives with 29, after onboarding ships.
 - **Tone meter** - AI provider, whether drafts are kept, whether warnings are logged.
