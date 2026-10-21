@@ -10,8 +10,16 @@ import {
   MenuItems,
   TransitionChild,
 } from "@headlessui/react";
-import { ChevronDownIcon, MagnifyingGlassIcon } from "@heroicons/react/20/solid";
-import { Bars3Icon, BellIcon, type HomeIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDownIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/20/solid";
+import {
+  Bars3Icon,
+  BellIcon,
+  type HomeIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
 
@@ -41,7 +49,13 @@ export type NavigationItem = {
   current: boolean;
 };
 
-export type TeamItem = { id: number; name: string; href: string; initial: string; current: boolean };
+export type TeamItem = {
+  id: number;
+  name: string;
+  href: string;
+  initial: string;
+  current: boolean;
+};
 
 const SIGN_OUT_FORM_ID = "dashboard-sign-out";
 
@@ -63,7 +77,7 @@ function Sidebar({
   return (
     <div className={className}>
       <div className="relative flex h-16 shrink-0 items-center">
-        <Logo onDark href="/dashboard" />
+        <Logo onDark small href="/dashboard" className="pl-0.5" />
       </div>
       <nav className="relative flex flex-1 flex-col">
         <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -183,7 +197,11 @@ export function DashboardShell({
       {/* Sign out lives outside the menu, which unmounts its items when closed. */}
       <form id={SIGN_OUT_FORM_ID} action={signOut} />
 
-      <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
+      <Dialog
+        open={sidebarOpen}
+        onClose={setSidebarOpen}
+        className="relative z-50 lg:hidden"
+      >
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"
@@ -241,7 +259,10 @@ export function DashboardShell({
           </button>
 
           {/* Separator */}
-          <div aria-hidden="true" className="h-6 w-px bg-gray-900/10 lg:hidden dark:bg-white/10" />
+          <div
+            aria-hidden="true"
+            className="h-6 w-px bg-gray-900/10 lg:hidden dark:bg-white/10"
+          />
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <form action="#" method="GET" className="grid flex-1 grid-cols-1">
@@ -257,7 +278,10 @@ export function DashboardShell({
               />
             </form>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+              <button
+                type="button"
+                className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+              >
                 <span className="sr-only">{dashboard.viewNotifications}</span>
                 <BellIcon aria-hidden="true" className="size-6" />
               </button>
@@ -287,7 +311,10 @@ export function DashboardShell({
                     >
                       {userName}
                     </span>
-                    <ChevronDownIcon aria-hidden="true" className="ml-2 size-5 text-gray-400 dark:text-gray-500" />
+                    <ChevronDownIcon
+                      aria-hidden="true"
+                      className="ml-2 size-5 text-gray-400 dark:text-gray-500"
+                    />
                   </span>
                 </MenuButton>
                 <MenuItems
@@ -319,7 +346,11 @@ export function DashboardShell({
 
         <main className={aside ? "xl:pl-96" : "py-10"}>
           <h1 className="sr-only">{title ?? dashboard.title}</h1>
-          {aside ? children : <div className="px-4 sm:px-6 lg:px-8">{children}</div>}
+          {aside ? (
+            children
+          ) : (
+            <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+          )}
         </main>
       </div>
 

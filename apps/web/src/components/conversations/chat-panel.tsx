@@ -1,12 +1,19 @@
 "use client";
 
-import { ChevronLeftIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronLeftIcon,
+  PaperAirplaneIcon,
+} from "@heroicons/react/24/outline";
 import { useEffect, useId, useRef } from "react";
 
 import { useMessages } from "@/lib/i18n/language-provider";
 
 import { InitialsAvatar } from "./initials-avatar";
-import { type Conversation, type ConversationMessage, type Sender } from "./sample-conversations";
+import {
+  type Conversation,
+  type ConversationMessage,
+  type Sender,
+} from "./sample-conversations";
 import { useDateFormat } from "./use-date-format";
 
 type DateFormat = ReturnType<typeof useDateFormat>;
@@ -36,7 +43,9 @@ function MessageBubble({
   return (
     <li className={`flex gap-x-3 ${mine ? "justify-end" : ""}`}>
       {mine ? null : <InitialsAvatar name={names[message.sender]} size="sm" />}
-      <div className={`flex max-w-[75%] min-w-0 flex-col ${mine ? "items-end" : "items-start"}`}>
+      <div
+        className={`flex max-w-[75%] min-w-0 flex-col ${mine ? "items-end" : "items-start"}`}
+      >
         <p
           className={`rounded-2xl px-4 py-2.5 text-sm/6 break-words whitespace-pre-wrap ${
             mine
@@ -47,7 +56,10 @@ function MessageBubble({
           <span className="sr-only">{names[message.sender]}: </span>
           {message.body}
         </p>
-        <time dateTime={message.createdAt} className="mt-1.5 text-xs text-gray-500">
+        <time
+          dateTime={message.createdAt}
+          className="mt-1.5 text-xs text-gray-500"
+        >
           {format.time(message.createdAt)}
         </time>
       </div>
@@ -90,26 +102,45 @@ export function ChatPanel({
         </button>
         <InitialsAvatar name={names[conversation.startedBy]} />
         <div className="min-w-0">
-          <h2 className="truncate text-base/7 font-semibold text-gray-900 dark:text-white">{conversation.subject}</h2>
+          <h2 className="truncate text-base/7 font-semibold text-gray-900 dark:text-white">
+            {conversation.subject}
+          </h2>
           <p className="truncate text-sm text-gray-500 dark:text-gray-400">
-            {messages.startedBy.replace("{name}", () => names[conversation.startedBy])}
+            {messages.startedBy.replace(
+              "{name}",
+              () => names[conversation.startedBy],
+            )}
           </p>
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8"
+      >
         {groupByDay(conversation.messages, format).map((group) => (
           <section key={group.key} className="mt-6 first:mt-0">
             <div className="flex items-center gap-x-4">
-              <div aria-hidden="true" className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+              <div
+                aria-hidden="true"
+                className="h-px flex-1 bg-gray-200 dark:bg-white/10"
+              />
               <h3 className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-200 ring-inset dark:bg-white/5 dark:text-gray-300 dark:ring-white/10">
                 {format.day(group.messages[0].createdAt)}
               </h3>
-              <div aria-hidden="true" className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+              <div
+                aria-hidden="true"
+                className="h-px flex-1 bg-gray-200 dark:bg-white/10"
+              />
             </div>
             <ol role="list" className="mt-6 space-y-6">
               {group.messages.map((message) => (
-                <MessageBubble key={message.id} message={message} names={names} format={format} />
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  names={names}
+                  format={format}
+                />
               ))}
             </ol>
           </section>

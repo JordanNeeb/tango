@@ -26,7 +26,12 @@ export function ConversationList({
   const format = useDateFormat();
 
   if (conversations.length === 0) {
-    return <EmptyState title={messages.emptyTitle} description={messages.emptyDescription} />;
+    return (
+      <EmptyState
+        title={messages.emptyTitle}
+        description={messages.emptyDescription}
+      />
+    );
   }
 
   return (
@@ -56,7 +61,9 @@ export function ConversationList({
                     </p>
                     {latest ? (
                       <p className="flex-none text-xs text-gray-600 dark:text-gray-400">
-                        <time dateTime={latest.createdAt}>{format.listDate(latest.createdAt)}</time>
+                        <time dateTime={latest.createdAt}>
+                          {format.listDate(latest.createdAt)}
+                        </time>
                       </p>
                     ) : null}
                   </div>

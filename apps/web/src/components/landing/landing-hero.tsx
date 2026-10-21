@@ -63,7 +63,10 @@ export function LandingHero({ messages }: { messages: Messages["landing"] }) {
           <Logo onDark />
           <div className="flex items-center gap-x-6">
             <LanguageMenu onDark />
-            <Link href="/sign-in" className="text-sm/6 font-semibold text-white">
+            <Link
+              href="/sign-in"
+              className="text-sm/6 font-semibold text-white"
+            >
               {messages.nav.logIn}
             </Link>
           </div>
