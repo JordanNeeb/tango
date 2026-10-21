@@ -99,7 +99,7 @@ export async function sendInvite(
   formData: FormData,
 ): Promise<ActionResult> {
   const messages = await requestMessages();
-  const { email, error } = validateEmail(readText(formData, "email"), {
+  const { email, error } = validateEmail(readText(formData, "coparent"), {
     ...messages.auth.errors,
     emailRequired: messages.dashboard.welcome.emailRequired,
   });

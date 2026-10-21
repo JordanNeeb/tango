@@ -73,19 +73,29 @@ function InviteForm({
       <FormAlert error={state.formError} notice={state.notice} />
       <input type="hidden" name="timeZone" value={timeZone} />
       <div className="flex gap-x-4">
-        <label htmlFor="coparent-email" className="sr-only">
+        <label htmlFor="coparent" className="sr-only">
           {dashboard.welcome.emailLabel}
         </label>
+        {/* Someone else's address, so it gives browsers and password managers no
+            email signal to autofill from. Chrome ignores autoComplete="off" here
+            but skips autofill for a value it doesn't recognise, hence "coparent".
+            The server validates the address. */}
         <input
-          id="coparent-email"
-          name="email"
-          type="email"
+          id="coparent"
+          name="coparent"
+          type="text"
+          inputMode="email"
+          autoCapitalize="none"
+          spellCheck={false}
           required
-          autoComplete="off"
+          autoComplete="coparent"
+          data-1p-ignore
+          data-bwignore
+          data-lpignore="true"
           placeholder={dashboard.welcome.emailLabel}
           defaultValue={state.values?.email}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? "coparent-email-error" : undefined}
+          aria-describedby={error ? "coparent-error" : undefined}
           className={emailInputClass}
         />
         <SubmitButton
@@ -95,7 +105,7 @@ function InviteForm({
         />
       </div>
       {error ? (
-        <p id="coparent-email-error" className={errorTextClass}>
+        <p id="coparent-error" className={errorTextClass}>
           {error}
         </p>
       ) : null}
