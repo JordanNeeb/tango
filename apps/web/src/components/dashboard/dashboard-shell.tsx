@@ -27,7 +27,10 @@ import { SettingsMenu } from "./settings-menu";
 // The shell holds what every dashboard shares: the logo, search and
 // notifications (still the reference's placeholders), the user's name,
 // Settings (language), Your profile, and Sign out. Each dashboard passes its
-// own sidebar navigation, optional teams, and content.
+// own sidebar navigation, optional teams, and content. Passing `aside` switches
+// to the multi-column layout
+// (design/references/tailwind-plus/application/multi-column-dashboard-dark.jsx):
+// an icon rail on desktop and a secondary column beside the content at xl.
 
 export type NavigationItem = {
   name: string;
@@ -120,15 +123,55 @@ function Sidebar({
   );
 }
 
+// The desktop sidebar in the multi-column layout: icons only, names for
+// screen readers, and Settings at the bottom.
+function Rail({ navigation }: { navigation: NavigationItem[] }) {
+  return (
+    <div className="hidden before:pointer-events-none before:absolute before:inset-0 before:border-r before:border-white/10 before:bg-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-20 lg:flex-col lg:overflow-y-auto lg:bg-gray-900 lg:pb-4">
+      <div className="relative flex h-16 shrink-0 items-center justify-center">
+        <Logo mark href="/dashboard" />
+      </div>
+      <nav className="relative mt-8 flex flex-1 flex-col items-center">
+        <ul role="list" className="flex flex-col items-center space-y-1">
+          {navigation.map((item) => (
+            <li key={item.name}>
+              <a
+                href={item.href}
+                aria-current={item.current ? "page" : undefined}
+                className={classNames(
+                  item.current
+                    ? "bg-white/5 text-white"
+                    : "text-gray-400 hover:bg-white/5 hover:text-white",
+                  "group flex gap-x-3 rounded-md p-3 text-sm/6 font-semibold",
+                )}
+              >
+                <item.icon aria-hidden="true" className="size-6 shrink-0" />
+                <span className="sr-only">{item.name}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-auto">
+          <SettingsMenu compact />
+        </div>
+      </nav>
+    </div>
+  );
+}
+
 export function DashboardShell({
   userName,
   navigation,
   teams,
+  title,
+  aside,
   children,
 }: {
   userName: string;
   navigation: NavigationItem[];
   teams?: TeamItem[];
+  title?: string;
+  aside?: ReactNode;
   children?: ReactNode;
 }) {
   const { dashboard } = useMessages();
@@ -173,15 +216,19 @@ export function DashboardShell({
       </Dialog>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden bg-gray-900 ring-1 ring-white/10 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <Sidebar
-          navigation={navigation}
-          teams={teams}
-          className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 pb-4"
-        />
-      </div>
+      {aside ? (
+        <Rail navigation={navigation} />
+      ) : (
+        <div className="hidden bg-gray-900 ring-1 ring-white/10 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+          <Sidebar
+            navigation={navigation}
+            teams={teams}
+            className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 pb-4"
+          />
+        </div>
+      )}
 
-      <div className="lg:pl-72">
+      <div className={aside ? "lg:pl-20" : "lg:pl-72"}>
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-white/10 bg-gray-900 px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
@@ -269,11 +316,17 @@ export function DashboardShell({
           </div>
         </div>
 
-        <main className="py-10">
-          <h1 className="sr-only">{dashboard.title}</h1>
-          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+        <main className={aside ? "xl:pl-96" : "py-10"}>
+          <h1 className="sr-only">{title ?? dashboard.title}</h1>
+          {aside ? children : <div className="px-4 sm:px-6 lg:px-8">{children}</div>}
         </main>
       </div>
+
+      {aside ? (
+        <aside className="fixed top-16 bottom-0 left-20 hidden w-96 overflow-y-auto border-r border-white/10 xl:block">
+          {aside}
+        </aside>
+      ) : null}
     </div>
   );
 }

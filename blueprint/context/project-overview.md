@@ -1,6 +1,6 @@
 # Tango - Project Overview
 
-<!-- blueprint:source-hash 8ecd4cfd48b3b024d49e705e1e41f3ec9c06e43a0a36aded1c7a834e2e008c81 -->
+<!-- blueprint:source-hash c55acfa3e33ad0883178edc8834426f05c8087a7693c2f264aca1d039f4ab263 -->
 
 > A Canadian, bilingual co-parenting app (web first, then iOS and Android) that
 > gives separated parents a permanent court-ready record of messages and calls,

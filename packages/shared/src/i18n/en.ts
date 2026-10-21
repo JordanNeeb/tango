@@ -96,6 +96,7 @@ export const en = {
     title: 'Dashboard',
     navigation: {
       dashboard: 'Dashboard',
+      messages: 'Messages',
       team: 'Team',
       projects: 'Projects',
       calendar: 'Calendar',
@@ -136,6 +137,19 @@ export const en = {
       nameRequired: 'Add your name to your profile before inviting your co-parent.',
       addName: 'Go to your profile',
     },
+  },
+  conversations: {
+    title: 'Messages',
+    heading: 'Conversations',
+    emptyTitle: 'No conversations yet',
+    emptyDescription: 'Conversations you and your co-parent start will appear here.',
+    selectTitle: 'Select a conversation',
+    selectDescription: 'Choose a conversation to read its messages.',
+    startedBy: 'Started by {name}',
+    back: 'Back to conversations',
+    composerLabel: 'Write a message',
+    composerPlaceholder: 'Write your message',
+    send: 'Send',
   },
   invite: {
     errors: {

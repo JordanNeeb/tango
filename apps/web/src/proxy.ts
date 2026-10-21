@@ -13,6 +13,7 @@ import {
 const SIGNED_IN_ONLY: Record<string, string> = {
   "/dashboard": "/sign-in",
   "/profile": "/sign-in",
+  "/messages": "/sign-in",
   "/reset-password": "/forgot-password",
 };
 // Signed-in visitors to these pages go to their dashboard.

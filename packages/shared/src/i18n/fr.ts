@@ -109,6 +109,7 @@ export const fr: Messages = {
     title: 'Tableau de bord',
     navigation: {
       dashboard: 'Tableau de bord',
+      messages: 'Messages',
       team: 'Équipe',
       projects: 'Projets',
       calendar: 'Calendrier',
@@ -149,6 +150,19 @@ export const fr: Messages = {
       nameRequired: "Ajoutez votre nom à votre profil avant d'inviter votre coparent.",
       addName: 'Aller à votre profil',
     },
+  },
+  conversations: {
+    title: 'Messages',
+    heading: 'Conversations',
+    emptyTitle: "Aucune conversation pour l'instant",
+    emptyDescription: 'Les conversations que vous et votre coparent commencez apparaîtront ici.',
+    selectTitle: 'Choisissez une conversation',
+    selectDescription: 'Choisissez une conversation pour lire ses messages.',
+    startedBy: 'Commencée par {name}',
+    back: 'Retour aux conversations',
+    composerLabel: 'Écrire un message',
+    composerPlaceholder: 'Écrivez votre message',
+    send: 'Envoyer',
   },
   landing: {
     nav: {

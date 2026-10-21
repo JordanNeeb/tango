@@ -16,19 +16,22 @@ const itemClass =
 // account menu. Language is its only setting so far: choosing it swaps the
 // dropdown to the list of languages, with a back row to return. A popover is
 // used rather than a menu because a menu closes on every item click.
-export function SettingsMenu() {
+// `compact` is the icon-only button for the narrow dashboard rail.
+export function SettingsMenu({ compact = false }: { compact?: boolean }) {
   const { dashboard } = useMessages();
 
   return (
-    <Popover className="-mx-2">
-      <PopoverButton className="group flex w-full gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-400 hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-indigo-500 data-open:bg-white/5 data-open:text-white">
+    <Popover className={compact ? undefined : "-mx-2"}>
+      <PopoverButton
+        className={`group flex w-full gap-x-3 rounded-md text-sm/6 font-semibold text-gray-400 hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-indigo-500 data-open:bg-white/5 data-open:text-white ${compact ? "p-3" : "p-2"}`}
+      >
         <Cog6ToothIcon aria-hidden="true" className="size-6 shrink-0" />
-        {dashboard.settings}
+        <span className={compact ? "sr-only" : undefined}>{dashboard.settings}</span>
       </PopoverButton>
       <PopoverPanel
         transition
         focus
-        anchor="top start"
+        anchor={compact ? "right end" : "top start"}
         className="z-50 w-56 origin-bottom-left rounded-md bg-gray-800 py-2 outline -outline-offset-1 outline-white/10 [--anchor-gap:--spacing(2)] transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
       >
         {/* The panel unmounts when closed, so it always reopens on the top level.
