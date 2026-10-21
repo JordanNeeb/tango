@@ -14,7 +14,7 @@ export function InitialsAvatar({ name, size = "md" }: { name: string; size?: "sm
   return (
     <span
       aria-hidden="true"
-      className={`flex flex-none items-center justify-center rounded-full bg-gray-800 font-medium text-gray-300 outline -outline-offset-1 outline-white/10 ${
+      className={`flex flex-none items-center justify-center rounded-full bg-gray-50 font-medium text-gray-600 outline -outline-offset-1 outline-black/5 dark:bg-gray-800 dark:text-gray-300 dark:outline-white/10 ${
         size === "sm" ? "size-8 text-xs" : "size-12 text-sm"
       }`}
     >

@@ -31,9 +31,7 @@ function browserTimeZone() {
 // Ported from the Tailwind Plus call-to-action section
 // (design/references/tailwind-plus/marketing/cta-dark.jsx, which carries both
 // themes; cta-light.jsx is its light half). Its two links are replaced by the
-// invite controls: an email field and an invite button. The dashboard is always
-// dark but these classes follow the OS theme, so the section sets its own
-// surface for each theme.
+// invite controls: an email field and an invite button.
 const buttonClass =
   "shrink-0 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500";
 

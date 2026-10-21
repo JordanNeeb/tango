@@ -40,8 +40,8 @@ function MessageBubble({
         <p
           className={`rounded-2xl px-4 py-2.5 text-sm/6 break-words whitespace-pre-wrap ${
             mine
-              ? "rounded-br-md bg-indigo-500 text-white"
-              : "rounded-bl-md bg-white/5 text-gray-200 ring-1 ring-white/10 ring-inset"
+              ? "rounded-br-md bg-indigo-600 text-white dark:bg-indigo-500"
+              : "rounded-bl-md bg-gray-100 text-gray-900 dark:bg-white/5 dark:text-gray-200 dark:ring-1 dark:ring-white/10 dark:ring-inset"
           }`}
         >
           <span className="sr-only">{names[message.sender]}: </span>
@@ -79,19 +79,19 @@ export function ChatPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-x-4 border-b border-white/10 px-4 py-4 sm:px-6 lg:px-8">
+      <div className="flex items-center gap-x-4 border-b border-gray-200 px-4 py-4 sm:px-6 lg:px-8 dark:border-white/10">
         <button
           type="button"
           onClick={onBack}
-          className="-m-2.5 p-2.5 text-gray-400 hover:text-white xl:hidden"
+          className="-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 xl:hidden dark:text-gray-400 dark:hover:text-white"
         >
           <span className="sr-only">{messages.back}</span>
           <ChevronLeftIcon aria-hidden="true" className="size-6" />
         </button>
         <InitialsAvatar name={names[conversation.startedBy]} />
         <div className="min-w-0">
-          <h2 className="truncate text-base/7 font-semibold text-white">{conversation.subject}</h2>
-          <p className="truncate text-sm text-gray-400">
+          <h2 className="truncate text-base/7 font-semibold text-gray-900 dark:text-white">{conversation.subject}</h2>
+          <p className="truncate text-sm text-gray-500 dark:text-gray-400">
             {messages.startedBy.replace("{name}", () => names[conversation.startedBy])}
           </p>
         </div>
@@ -101,11 +101,11 @@ export function ChatPanel({
         {groupByDay(conversation.messages, format).map((group) => (
           <section key={group.key} className="mt-6 first:mt-0">
             <div className="flex items-center gap-x-4">
-              <div aria-hidden="true" className="h-px flex-1 bg-white/10" />
-              <h3 className="rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-gray-300 ring-1 ring-white/10 ring-inset">
+              <div aria-hidden="true" className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+              <h3 className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-200 ring-inset dark:bg-white/5 dark:text-gray-300 dark:ring-white/10">
                 {format.day(group.messages[0].createdAt)}
               </h3>
-              <div aria-hidden="true" className="h-px flex-1 bg-white/10" />
+              <div aria-hidden="true" className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
             </div>
             <ol role="list" className="mt-6 space-y-6">
               {group.messages.map((message) => (
@@ -116,7 +116,7 @@ export function ChatPanel({
         ))}
       </div>
 
-      <div className="flex items-end gap-x-3 border-t border-white/10 px-4 py-4 sm:px-6 lg:px-8">
+      <div className="flex items-end gap-x-3 border-t border-gray-200 px-4 py-4 sm:px-6 lg:px-8 dark:border-white/10">
         <label htmlFor={composerId} className="sr-only">
           {messages.composerLabel}
         </label>
@@ -124,12 +124,12 @@ export function ChatPanel({
           id={composerId}
           rows={1}
           placeholder={messages.composerPlaceholder}
-          className="block min-h-11 flex-1 resize-none rounded-3xl bg-white/5 px-4 py-2.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+          className="block min-h-11 flex-1 resize-none rounded-3xl bg-white px-4 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
         />
         <button
           type="button"
           disabled
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-indigo-500"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500 dark:disabled:hover:bg-indigo-500"
         >
           <span className="sr-only">{messages.send}</span>
           <PaperAirplaneIcon aria-hidden="true" className="size-5" />

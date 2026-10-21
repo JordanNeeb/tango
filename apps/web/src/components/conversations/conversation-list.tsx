@@ -31,10 +31,10 @@ export function ConversationList({
 
   return (
     <div>
-      <h2 className="px-4 pt-6 pb-2 text-base/7 font-semibold text-white sm:px-6">
+      <h2 className="px-4 pt-6 pb-2 text-base/7 font-semibold text-gray-900 sm:px-6 dark:text-white">
         {messages.heading}
       </h2>
-      <ul role="list" className="divide-y divide-white/5">
+      <ul role="list" className="divide-y divide-gray-100 dark:divide-white/5">
         {conversations.map((conversation) => {
           const latest = conversation.messages.at(-1);
           const selected = conversation.id === selectedId;
@@ -44,24 +44,24 @@ export function ConversationList({
                 type="button"
                 onClick={() => onSelect(conversation.id)}
                 aria-current={selected ? "true" : undefined}
-                className={`flex w-full gap-x-4 px-4 py-5 text-left hover:bg-white/5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-500 sm:px-6 ${
-                  selected ? "bg-white/5" : ""
+                className={`flex w-full gap-x-4 px-4 py-5 text-left hover:bg-gray-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-500 sm:px-6 dark:hover:bg-white/5 ${
+                  selected ? "bg-gray-50 dark:bg-white/5" : ""
                 }`}
               >
                 <InitialsAvatar name={latest ? names[latest.sender] : ""} />
                 <div className="min-w-0 flex-auto">
                   <div className="flex items-baseline justify-between gap-x-4">
-                    <p className="truncate text-sm/6 font-semibold text-white">
+                    <p className="truncate text-sm/6 font-semibold text-gray-900 dark:text-white">
                       {conversation.subject}
                     </p>
                     {latest ? (
-                      <p className="flex-none text-xs text-gray-400">
+                      <p className="flex-none text-xs text-gray-600 dark:text-gray-400">
                         <time dateTime={latest.createdAt}>{format.listDate(latest.createdAt)}</time>
                       </p>
                     ) : null}
                   </div>
                   {latest ? (
-                    <p className="mt-1 line-clamp-2 text-sm/6 break-words text-gray-400">
+                    <p className="mt-1 line-clamp-2 text-sm/6 break-words text-gray-600 dark:text-gray-400">
                       <span className="sr-only">{names[latest.sender]}: </span>
                       {latest.body}
                     </p>

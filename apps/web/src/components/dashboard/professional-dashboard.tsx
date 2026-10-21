@@ -9,8 +9,7 @@ import { useMessages } from "@/lib/i18n/language-provider";
 import { DashboardShell, type NavigationItem } from "./dashboard-shell";
 
 // The professional portal. Until the portal exists (feature 28) its home
-// explains that parents will invite them. The shell is always dark but Catalyst
-// follows the OS theme, so the panel sets its own surface for each theme.
+// explains that parents will invite them.
 export function ProfessionalDashboard({ userName }: { userName: string }) {
   const { dashboard } = useMessages();
   const messages = dashboard.professional;

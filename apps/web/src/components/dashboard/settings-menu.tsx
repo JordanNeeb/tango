@@ -10,7 +10,7 @@ import { type LanguageResult, setLanguage } from "@/lib/i18n/actions";
 import { useLanguage, useMessages } from "@/lib/i18n/language-provider";
 
 const itemClass =
-  "flex w-full items-center gap-x-3 px-3 py-1.5 text-left text-sm/6 text-white hover:bg-white/5 focus-visible:bg-white/5 focus-visible:outline-hidden";
+  "flex w-full items-center gap-x-3 px-3 py-1.5 text-left text-sm/6 text-gray-900 hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-hidden dark:text-white dark:hover:bg-white/5 dark:focus-visible:bg-white/5";
 
 // The sidebar's Settings button opens a dropdown styled like the dashboard's
 // account menu. Language is its only setting so far: choosing it swaps the
@@ -32,7 +32,7 @@ export function SettingsMenu({ compact = false }: { compact?: boolean }) {
         transition
         focus
         anchor={compact ? "right end" : "top start"}
-        className="z-50 w-56 origin-bottom-left rounded-md bg-gray-800 py-2 outline -outline-offset-1 outline-white/10 [--anchor-gap:--spacing(2)] transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+        className="z-50 w-56 origin-bottom-left rounded-md bg-white py-2 shadow-lg outline outline-gray-900/5 dark:bg-gray-800 dark:shadow-none dark:-outline-offset-1 dark:outline-white/10 [--anchor-gap:--spacing(2)] transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
       >
         {/* The panel unmounts when closed, so it always reopens on the top level.
             `focus` moves keyboard focus into it on open; each view's first row
@@ -52,7 +52,7 @@ function SettingsPanel() {
       <button type="button" autoFocus onClick={() => setView("language")} className={itemClass}>
         <LanguageIcon aria-hidden="true" className="size-5 shrink-0 text-gray-400" />
         <span className="flex-1">{messages.languageMenu.label}</span>
-        <ChevronRightIcon aria-hidden="true" className="size-5 text-gray-500" />
+        <ChevronRightIcon aria-hidden="true" className="size-5 text-gray-400 dark:text-gray-500" />
       </button>
     );
   }
@@ -78,9 +78,9 @@ function LanguageList({ onBack, backLabel }: { onBack: () => void; backLabel: st
         type="button"
         autoFocus
         onClick={onBack}
-        className={`${itemClass} border-b border-white/10 pb-2 font-semibold`}
+        className={`${itemClass} border-b border-gray-200 pb-2 font-semibold dark:border-white/10`}
       >
-        <ChevronLeftIcon aria-hidden="true" className="size-5 shrink-0 text-gray-500" />
+        <ChevronLeftIcon aria-hidden="true" className="size-5 shrink-0 text-gray-400 dark:text-gray-500" />
         {backLabel}
       </button>
       <form action={formAction} className="pt-1">
@@ -97,13 +97,13 @@ function LanguageList({ onBack, backLabel }: { onBack: () => void; backLabel: st
           >
             {item.name}
             {item.lang === lang ? (
-              <CheckIcon aria-hidden="true" className="size-4 text-indigo-500" />
+              <CheckIcon aria-hidden="true" className="size-4 text-indigo-600 dark:text-indigo-500" />
             ) : null}
           </button>
         ))}
       </form>
       {state.formError ? (
-        <p role="alert" className="mx-2 mt-2 rounded-md bg-red-950 p-2 text-sm text-red-300">
+        <p role="alert" className="mx-2 mt-2 rounded-md bg-red-50 p-2 text-sm text-red-800 dark:bg-red-950 dark:text-red-300">
           {state.formError}
         </p>
       ) : null}
