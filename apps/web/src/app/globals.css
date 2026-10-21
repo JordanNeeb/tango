@@ -12,6 +12,22 @@
   --font-mono: var(--font-google-sans-code);
 }
 
+/* The accent palette, tuned to the indigo ring in the Tango logo: 500 is the
+   ring (#4758FF) and the other steps keep Tailwind's lightness at its hue. */
+@theme {
+  --color-indigo-50: oklch(96.2% 0.017 271.2);
+  --color-indigo-100: oklch(93% 0.033 271.2);
+  --color-indigo-200: oklch(87% 0.063 271.2);
+  --color-indigo-300: oklch(78.5% 0.108 271.2);
+  --color-indigo-400: oklch(67.3% 0.172 271.2);
+  --color-indigo-500: oklch(55.7% 0.244 271.2);
+  --color-indigo-600: oklch(51.1% 0.262 271.2);
+  --color-indigo-700: oklch(45.7% 0.24 271.2);
+  --color-indigo-800: oklch(39.8% 0.195 271.2);
+  --color-indigo-900: oklch(35.9% 0.144 271.2);
+  --color-indigo-950: oklch(25.7% 0.09 271.2);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
