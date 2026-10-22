@@ -27,6 +27,7 @@ export function useDateFormat() {
     const day = make({ weekday: "long", month: "long", day: "numeric" });
     const shortDay = make({ month: "short", day: "numeric" });
     const dayKey = make({ year: "numeric", month: "2-digit", day: "2-digit" });
+    const dateTime = make({ month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
     const keyOf = (iso: string) => dayKey?.format(new Date(iso)) ?? "";
 
@@ -34,6 +35,7 @@ export function useDateFormat() {
       time: (iso: string) => time?.format(new Date(iso)) ?? "",
       day: (iso: string) => day?.format(new Date(iso)) ?? "",
       dayKey: keyOf,
+      dateTime: (iso: string) => dateTime?.format(new Date(iso)) ?? "",
       // Today's messages show their time; older ones their date.
       listDate: (iso: string) => {
         if (!time || !shortDay) return "";

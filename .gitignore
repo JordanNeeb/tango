@@ -40,3 +40,6 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Personal Claude Code settings
+.claude/settings.local.json

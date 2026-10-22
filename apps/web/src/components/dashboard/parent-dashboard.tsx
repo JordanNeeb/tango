@@ -1,5 +1,6 @@
 "use client";
 
+import { useMessagesActivity } from "@/components/conversations/use-messages-activity";
 import { useMessages } from "@/lib/i18n/language-provider";
 
 import { DashboardShell, type TeamItem } from "./dashboard-shell";
@@ -11,14 +12,17 @@ import { ParentWelcome, type WelcomeData } from "./parent-welcome";
 // the welcome page; parent content for families comes in later features.
 export function ParentDashboard({
   userName,
+  familyId,
   welcome,
   inviteError,
 }: {
   userName: string;
+  familyId: string | null;
   welcome?: WelcomeData;
   inviteError?: string;
 }) {
   const { dashboard } = useMessages();
+  const unread = useMessagesActivity(familyId);
 
   const teams: TeamItem[] = [
     { id: 1, name: dashboard.teams.heroicons, href: "#", initial: "H", current: false },
@@ -27,7 +31,7 @@ export function ParentDashboard({
   ];
 
   return (
-    <DashboardShell userName={userName} navigation={parentNavigation(dashboard, "dashboard")} teams={teams}>
+    <DashboardShell userName={userName} navigation={parentNavigation(dashboard, "dashboard", unread)} teams={teams}>
       {welcome ? <ParentWelcome welcome={welcome} inviteError={inviteError} /> : null}
     </DashboardShell>
   );

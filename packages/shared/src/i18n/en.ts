@@ -97,6 +97,7 @@ export const en = {
     navigation: {
       dashboard: 'Dashboard',
       messages: 'Messages',
+      unread: '{count} unread',
       team: 'Team',
       projects: 'Projects',
       calendar: 'Calendar',
@@ -150,6 +151,38 @@ export const en = {
     composerLabel: 'Write a message',
     composerPlaceholder: 'Write your message',
     send: 'Send',
+    noCoParent: {
+      title: 'Add a co-parent to start messaging',
+      description:
+        "Conversations are between you and your co-parent. Invite them from your dashboard, and you can start one as soon as they accept.",
+      pending: 'Your invite to {email} is waiting for them to accept.',
+      invite: 'Invite your co-parent',
+      viewInvite: 'View your invite',
+    },
+    sending: 'Sending',
+    newConversation: 'New conversation',
+    subjectLabel: 'Subject',
+    bodyLabel: 'Message',
+    start: 'Start conversation',
+    starting: 'Starting',
+    cancel: 'Cancel',
+    coParentFallback: 'Your co-parent',
+    status: {
+      label: 'Message status',
+      sent: 'Sent {time}',
+      delivered: 'Delivered {time}',
+      received: 'Received {time}',
+      previewed: 'Previewed {time}',
+      read: 'Read {time}',
+    },
+    errors: {
+      subjectRequired: 'Enter a subject.',
+      subjectTooLong: 'Keep the subject to 150 characters or fewer.',
+      bodyRequired: 'Write a message.',
+      bodyTooLong: 'Keep the message to 10,000 characters or fewer.',
+      unavailable: "This conversation isn't available.",
+      sendFailed: "We couldn't send your message. Try again.",
+    },
   },
   invite: {
     errors: {

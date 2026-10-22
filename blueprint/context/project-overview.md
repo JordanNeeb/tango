@@ -1,6 +1,6 @@
 # Tango - Project Overview
 
-<!-- blueprint:source-hash 3656337994e062848051d1cb7b21b422445b6a7a5b87dfd12690e906c76c05f5 -->
+<!-- blueprint:source-hash ff2c9f4c78dcbaf2919c3a68b6d86727e1747dbcbe5a2f1ff4fd2918fc12b01a -->
 
 > A Canadian, bilingual co-parenting app (web first, then iOS and Android) that
 > gives separated parents a permanent court-ready record of messages and calls,
@@ -78,8 +78,8 @@ verifiable record), **10-11** (agreement enforcement), **13-15** (real payments)
     - 5c. **Co-parent switching and settings** - header co-parent switcher with two or more co-parents; Settings > Co-parents deletes (hides) after typing the name and restores.
 
 **Messaging**
-6. **Subject conversations** - parent-titled conversations in one scrollable list, never closed; server timestamps; attachments (tier 1 1 GB cap); no edits or deletes.
-7. **Access log and tamper evidence** - first-viewed timestamps shown to both parents; append-only log of sign-ins, views, replies; hash chain.
+6. **Subject conversations** - parent-titled conversations in one scrollable list, never closed; live; server timestamps; message status shown to both; attachments (tier 1 1 GB cap); no edits or deletes.
+7. **Access log and tamper evidence** - append-only log of sign-ins, views, replies; hash chain.
 8. **Message search** - EN/FR keyword search over subjects and messages; date, sender, attachment filters; jump to result.
 25. **AI tone meter** - flags hostile wording while writing and suggests a rewrite; never blocks.
 
@@ -149,7 +149,7 @@ no `UPDATE`/`DELETE` of content.
 - `prev_hash`, `hash` - chain over (prev_hash, sender, conversation, body, attachments, created_at)
 - search vector covering EN and FR (subject included via conversation)
 - `message_attachments`: `id`, `message_id`, `storage_path`, `mime_type` (image or PDF), `size_bytes`
-- `message_reads`: `message_id`, `reader_id`, `first_viewed_at` - shown to both parents
+- `message_receipts` (append-only): `message_id`, `reader_id`, `kind` (`delivered | received | previewed | read | replied`), `created_at`; one per kind
 
 ### access_log (append-only)
 - `id`, `family_id` (nullable for sign-ins), `actor_id`, `actor_role` (`parent | professional`)

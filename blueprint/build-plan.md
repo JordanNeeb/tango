@@ -37,9 +37,9 @@ Do not renumber completed features; their archived specs refer to those IDs.
 
 - [ ] 6. **Subject conversations** - permanent conversations titled by the parent who starts them, in one scrollable list, with server timestamps, attachments (counted toward tier 1's 1 GB document storage), and no editing or deleting
   - [x] 6a. **Messages layout** - Messages in the parent sidebar opens a multi-column page: a narrow list of conversations beside the chat, with placeholder conversations until 6b
-  - [ ] 6b. **Conversations and messages** - append-only conversations and messages: start a titled conversation, send with server timestamps, and real data in the layout
+  - [x] 6b. **Conversations and messages** - append-only conversations and messages: start a titled conversation, send with server timestamps, real data in the layout with live updates, and message status (sent, delivered, received, previewed, read, replied) recorded and shown to both parents
   - [ ] 6c. **Attachments** - image and PDF attachments, counted toward tier 1's 1 GB document storage
-- [ ] 7. **Access log and tamper evidence** - first-viewed timestamps shown to both parents, an append-only log of sign-ins, views, and replies, and a hash chain over messages
+- [ ] 7. **Access log and tamper evidence** - an append-only log of sign-ins, views, and replies, and a hash chain over messages
 - [ ] 8. **Message search** - English and French keyword search across subjects and messages with date, sender, and attachment filters
 - [ ] 25. **AI tone meter** - warn about hostile wording while a parent writes and suggest a calmer rewrite, never blocking a message
 

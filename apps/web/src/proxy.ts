@@ -76,7 +76,9 @@ export async function proxy(request: NextRequest) {
     ? SIGNED_OUT_ONLY.includes(pathname)
       ? "/dashboard"
       : undefined
-    : (SIGNED_IN_ONLY[pathname] ?? signUpWithoutType(request));
+    : (SIGNED_IN_ONLY[pathname] ??
+      (pathname.startsWith("/messages/") ? "/sign-in" : undefined) ??
+      signUpWithoutType(request));
 
   if (target) {
     const url = request.nextUrl.clone();

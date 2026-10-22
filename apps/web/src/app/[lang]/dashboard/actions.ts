@@ -119,6 +119,7 @@ export async function sendInvite(
   // The invite exists even if the email fails; the pending card then offers
   // Send again.
   revalidatePath("/dashboard");
+  revalidatePath("/messages");
   const sendError = await sendInviteEmail(supabase, inviteId);
   if (sendError) return failure("send", sendError, messages);
   return { notice: messages.dashboard.welcome.sent };
@@ -135,6 +136,7 @@ export async function resendInvite(
   const supabase = await signedInClient();
   const sendError = await sendInviteEmail(supabase, inviteId);
   revalidatePath("/dashboard");
+  revalidatePath("/messages");
   if (sendError) return failure("resend", sendError, messages);
   return { notice: messages.dashboard.welcome.sent };
 }

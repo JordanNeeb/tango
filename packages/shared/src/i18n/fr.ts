@@ -112,6 +112,7 @@ export const fr: Messages = {
     navigation: {
       dashboard: 'Tableau de bord',
       messages: 'Messages',
+      unread: '{count} non lus',
       team: 'Équipe',
       projects: 'Projets',
       calendar: 'Calendrier',
@@ -165,6 +166,38 @@ export const fr: Messages = {
     composerLabel: 'Écrire un message',
     composerPlaceholder: 'Écrivez votre message',
     send: 'Envoyer',
+    noCoParent: {
+      title: 'Ajoutez un coparent pour commencer à échanger',
+      description:
+        'Les conversations se font entre vous et votre coparent. Invitez-le depuis votre tableau de bord : vous pourrez en commencer une dès son acceptation.',
+      pending: "Votre invitation à {email} attend d'être acceptée.",
+      invite: 'Inviter votre coparent',
+      viewInvite: 'Voir votre invitation',
+    },
+    sending: 'Envoi',
+    newConversation: 'Nouvelle conversation',
+    subjectLabel: 'Sujet',
+    bodyLabel: 'Message',
+    start: 'Commencer la conversation',
+    starting: 'Création',
+    cancel: 'Annuler',
+    coParentFallback: 'Votre coparent',
+    status: {
+      label: 'État du message',
+      sent: 'Envoyé {time}',
+      delivered: 'Distribué {time}',
+      received: 'Reçu {time}',
+      previewed: 'Aperçu {time}',
+      read: 'Lu {time}',
+    },
+    errors: {
+      subjectRequired: 'Entrez un sujet.',
+      subjectTooLong: 'Le sujet doit compter 150 caractères ou moins.',
+      bodyRequired: 'Écrivez un message.',
+      bodyTooLong: 'Le message doit compter 10 000 caractères ou moins.',
+      unavailable: "Cette conversation n'est pas disponible.",
+      sendFailed: "Nous n'avons pas pu envoyer votre message. Réessayez.",
+    },
   },
   landing: {
     nav: {

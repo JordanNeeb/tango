@@ -2,12 +2,10 @@
 
 import { type RefObject, useEffect } from "react";
 
-import { type ActionResult } from "@/lib/auth/validation";
-
 // After a submission returns field errors, move focus to the first invalid field.
 export function useFocusFirstError(
   formRef: RefObject<HTMLFormElement | null>,
-  state: ActionResult,
+  state: { fieldErrors?: object },
 ) {
   useEffect(() => {
     if (!state.fieldErrors) return;

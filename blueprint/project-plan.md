@@ -120,10 +120,13 @@ conversations instead of one continuous chat per family.
 - Server-assigned timestamps, never device time.
 - Attachments: photos and PDFs, stored permanently, included in exports.
   **Assumption.**
-- **First-viewed timestamps:** when a parent first opens a message, the date
-  and time are shown on that message to both parents; an unopened message shows
-  "Never viewed". Messages cannot be previewed without opening them, so lists
-  and notifications never show message text (as on TalkingParents).
+- **Message status:** each message keeps the server time it was sent and,
+  once each, when the receiving parent's app first loaded it (delivered), first
+  alerted them to it outside the conversation (received), first showed its
+  text in the conversation list (previewed), first opened its conversation
+  (read), and when they first replied after it (replied). The latest message
+  shows its status to both parents, except replied, which is kept for court
+  exports with the rest. Conversations update live.
 - **Access log:** every sign-in, every message view (not only the first), and
   every reply is recorded in an append-only log. Parents do not see each other's
   sign-ins or later views in the app; the log appears in court exports,
@@ -242,7 +245,7 @@ conversations instead of one continuous chat per family.
 
 ### Court-ready export
 
-- PDF export of conversations (with attachments and first-viewed timestamps),
+- PDF export of conversations (with attachments and message status),
   the access log, the call log and recording references, calendar requests and
   decisions, agreement versions, and expenses and payments, for a chosen date
   range, in English or French.
@@ -348,7 +351,7 @@ fee waiver, and professional account.
 - **Children:** name, birthdate.
 - **Conversations:** subject, started by, started at; append-only.
 - **Messages:** append-only; conversation, sender, server timestamp, body,
-  attachments, hash chain link, first-viewed timestamp.
+  attachments, hash chain link, message status (sent, delivered, received, previewed, read, replied).
 - **Access log:** append-only events: sign-ins, message views, replies,
   exports, professional actions, and call events.
 - **Calls:** call log (caller, callee, start, end, answered, in-call events),

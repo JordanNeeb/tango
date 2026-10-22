@@ -21,10 +21,11 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 
 import { signOut } from "@/app/[lang]/(auth)/actions";
 import { Logo } from "@/components/common/logo";
+import { useOnShown } from "@/components/conversations/message-status";
 import { useMessages } from "@/lib/i18n/language-provider";
 
 import { SettingsMenu } from "./settings-menu";
@@ -47,6 +48,12 @@ export type NavigationItem = {
   // Any Heroicons outline icon; they all share this type.
   icon: typeof HomeIcon;
   current: boolean;
+  // A count badge, such as unread messages; hidden at 0. `onCountShown` runs
+  // whenever the badge is on screen in a visible tab, and again when
+  // `countKey` (what's being counted) changes.
+  count?: number;
+  countKey?: string;
+  onCountShown?: () => void;
 };
 
 export type TeamItem = {
@@ -61,6 +68,29 @@ const SIGN_OUT_FORM_ID = "dashboard-sign-out";
 
 function classNames(...classes: (string | false | undefined)[]) {
   return classes.filter(Boolean).join(" ");
+}
+
+// Styled after the count badge in Tailwind Plus's dark sidebar navigation (not
+// among the saved references). On the rail it sits on the icon's corner. Screen readers hear "{count} unread" after the item's name.
+function CountBadge({ item, rail }: { item: NavigationItem; rail?: boolean }) {
+  const { dashboard } = useMessages();
+  const ref = useRef<HTMLSpanElement>(null);
+  const count = item.count ?? 0;
+  useOnShown(ref, () => item.onCountShown?.(), item.countKey);
+  const label = dashboard.navigation.unread.replace("{count}", String(count));
+  return (
+    <span
+      ref={ref}
+      className={classNames(
+        rail
+          ? "absolute top-1.5 right-1.5 min-w-4 rounded-full bg-indigo-500 px-1 text-center text-[0.625rem]/4 text-white"
+          : "ml-auto w-9 min-w-max rounded-full bg-gray-900 px-2.5 py-0.5 text-center text-xs/5 font-medium whitespace-nowrap text-white outline-1 -outline-offset-1 outline-white/15",
+      )}
+    >
+      <span aria-hidden="true">{count > 99 ? "99+" : count}</span>
+      <span className="sr-only">, {label}</span>
+    </span>
+  );
 }
 
 // The sidebar contents, shared by the mobile dialog and the desktop column.
@@ -97,6 +127,7 @@ function Sidebar({
                   >
                     <item.icon aria-hidden="true" className="size-6 shrink-0" />
                     {item.name}
+                    {item.count ? <CountBadge item={item} /> : null}
                   </a>
                 </li>
               ))}
@@ -157,11 +188,12 @@ function Rail({ navigation }: { navigation: NavigationItem[] }) {
                   item.current
                     ? "bg-white/5 text-white"
                     : "text-gray-400 hover:bg-white/5 hover:text-white",
-                  "group flex gap-x-3 rounded-md p-3 text-sm/6 font-semibold",
+                  "group relative flex gap-x-3 rounded-md p-3 text-sm/6 font-semibold",
                 )}
               >
                 <item.icon aria-hidden="true" className="size-6 shrink-0" />
                 <span className="sr-only">{item.name}</span>
+                {item.count ? <CountBadge item={item} rail /> : null}
               </a>
             </li>
           ))}

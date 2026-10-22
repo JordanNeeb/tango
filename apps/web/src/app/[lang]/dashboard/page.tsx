@@ -5,8 +5,8 @@ import { Suspense } from "react";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { ParentDashboard } from "@/components/dashboard/parent-dashboard";
-import { type WelcomeData } from "@/components/dashboard/parent-welcome";
 import { ProfessionalDashboard } from "@/components/dashboard/professional-dashboard";
+import { loadFamilyId, loadWelcome } from "@/lib/families";
 import { pageMessages, requestMessages } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -72,8 +72,12 @@ async function Dashboard({
     return <ProfessionalDashboard userName={userName} />;
   }
 
-  const welcome = await loadWelcome(supabase, claims.sub, Boolean(profile.name?.trim()));
-  if (welcome === "error") {
+  const familyId = await loadFamilyId(supabase, claims.sub);
+  const welcome =
+    familyId === null
+      ? await loadWelcome(supabase, claims.sub, Boolean(profile.name?.trim()))
+      : undefined;
+  if (familyId === "error" || welcome === "error") {
     const { auth } = await requestMessages();
     return (
       <DashboardShell userName={userName} navigation={[]}>
@@ -85,53 +89,14 @@ async function Dashboard({
   }
   const { invite } = await searchParams;
   const inviteError = welcome ? inviteMessage(invite, await requestMessages()) : undefined;
-  return <ParentDashboard userName={userName} welcome={welcome} inviteError={inviteError} />;
-}
-
-// A parent without a family sees the welcome page, with the invite they sent if
-// it's still pending. Returns undefined once they have a
-// family.
-async function loadWelcome(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
-  hasName: boolean,
-): Promise<WelcomeData | undefined | "error"> {
-  const { data: memberships, error: memberError } = await supabase
-    .from("family_members")
-    .select("family_id")
-    .eq("user_id", userId)
-    .limit(1);
-  if (memberError) {
-    console.error("[dashboard] family load failed", { code: memberError.code, message: memberError.message });
-    return "error";
-  }
-  if (memberships.length > 0) return undefined;
-
-  const { data: sent, error: sentError } = await supabase
-    .from("family_invites")
-    .select("id, invited_email, expires_at, time_zone")
-    .eq("invited_by", userId)
-    .eq("status", "pending")
-    .gt("expires_at", new Date().toISOString())
-    .order("created_at", { ascending: false })
-    .limit(1);
-  if (sentError) {
-    console.error("[dashboard] invites load failed", { code: sentError.code, message: sentError.message });
-    return "error";
-  }
-
-  const latest = sent[0];
-  return {
-    hasName,
-    sent: latest
-      ? {
-          id: latest.id,
-          email: latest.invited_email,
-          expiresAt: latest.expires_at,
-          timeZone: latest.time_zone,
-        }
-      : null,
-  };
+  return (
+    <ParentDashboard
+      userName={userName}
+      familyId={familyId}
+      welcome={welcome}
+      inviteError={inviteError}
+    />
+  );
 }
 
 export default function DashboardPage({ searchParams }: PageProps<"/[lang]/dashboard">) {
