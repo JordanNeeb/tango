@@ -1,6 +1,6 @@
 # Tango - Project Overview
 
-<!-- blueprint:source-hash c55acfa3e33ad0883178edc8834426f05c8087a7693c2f264aca1d039f4ab263 -->
+<!-- blueprint:source-hash 3656337994e062848051d1cb7b21b422445b6a7a5b87dfd12690e906c76c05f5 -->
 
 > A Canadian, bilingual co-parenting app (web first, then iOS and Android) that
 > gives separated parents a permanent court-ready record of messages and calls,
@@ -253,6 +253,7 @@ no `UPDATE`/`DELETE` of content.
 - **Pre-launch (not features):** Law 25 privacy impact assessment (Stripe, email, push, Agora, AI provider, Supabase subprocessors); privacy policy and terms with recording consent; CGSB-aligned records-management policy; named records custodian and affidavit template; privacy and family-law lawyer review.
 
 > TODO: build/start commands and health path (`/release`).
+> TODO: verify a Resend sending domain and set `INVITE_FROM_EMAIL` (staging, production).
 
 ## Open questions
 

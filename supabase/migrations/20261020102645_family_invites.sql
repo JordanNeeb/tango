@@ -15,6 +15,7 @@ create table public.family_invites (
   created_at timestamptz not null default now(),
   expires_at timestamptz not null default now() + interval '7 days',
   last_sent_at timestamptz,
+  send_count integer not null default 0,
   accepted_at timestamptz
 );
 
@@ -96,13 +97,13 @@ begin
   end if;
 
   -- Each invite emails any address from Tango's domain, so a parent can create
-  -- at most 5 in any 24 hours. A per-caller lock keeps concurrent requests from
+  -- at most 10 in any 24 hours. A per-caller lock keeps concurrent requests from
   -- passing the count together.
   perform pg_advisory_xact_lock(hashtextextended('invite-limit ' || caller::text, 0));
   if (
     select count(*) from public.family_invites i
     where i.invited_by = caller and i.created_at > now() - interval '24 hours'
-  ) >= 5 then
+  ) >= 10 then
     raise exception 'invite_limit';
   end if;
 
@@ -141,7 +142,8 @@ end;
 $$;
 
 -- Every invite email goes through this first: it checks the caller sent the
--- invite and limits sending to once a minute per invite.
+-- invite and limits sending to once a minute and 10 times in all per invite.
+-- The row lock keeps concurrent sends from passing the count together.
 create function public.mark_family_invite_sent(invite_id uuid)
 returns void
 language plpgsql
@@ -159,11 +161,16 @@ begin
   if invite.id is null or invite.status <> 'pending' or invite.expires_at <= now() then
     raise exception 'invite_unavailable';
   end if;
+  if invite.send_count >= 10 then
+    raise exception 'send_limit';
+  end if;
   if invite.last_sent_at is not null and invite.last_sent_at > now() - interval '60 seconds' then
     raise exception 'too_soon';
   end if;
 
-  update public.family_invites set last_sent_at = now() where id = invite.id;
+  update public.family_invites
+  set last_sent_at = now(), send_count = invite.send_count + 1
+  where id = invite.id;
 end;
 $$;
 

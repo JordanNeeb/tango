@@ -1,16 +1,17 @@
 // Emails one co-parent invite. The caller's JWT scopes the checks:
 // mark_family_invite_sent confirms the caller sent the invite and limits sending
-// to once a minute. Only then is the token read with the service-role key,
+// to once a minute and 10 times in all. Only then is the token read with the service-role key,
 // because clients can't read tokens (following the link accepts the invite).
 // Sends through Resend when RESEND_API_KEY is set (staging and production),
 // otherwise through local Mailpit's send API.
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 
-type ErrorCode = "invalid_request" | "too_soon" | "invite_unavailable" | "send_failed";
+type ErrorCode = "invalid_request" | "too_soon" | "send_limit" | "invite_unavailable" | "send_failed";
 
 const STATUS: Record<ErrorCode, number> = {
   invalid_request: 400,
   too_soon: 429,
+  send_limit: 429,
   invite_unavailable: 404,
   send_failed: 502,
 };
@@ -107,6 +108,7 @@ Deno.serve(async (request) => {
   });
   if (markError) {
     if (markError.message === "too_soon") return fail("too_soon");
+    if (markError.message === "send_limit") return fail("send_limit");
     if (markError.message === "invite_unavailable") return fail("invite_unavailable");
     console.error("[send-family-invite] mark failed", { code: markError.code });
     return fail("send_failed");

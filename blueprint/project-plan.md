@@ -485,6 +485,10 @@ Account closure and legal retention rules are a **TODO** for the privacy review.
   email provider, Agora, AI provider, Azure Key Vault, the SSL.com
   certificate (including organization vetting), domain, and Apple and Google
   developer accounts all need creating.
+- **TODO:** verify a sending domain in Resend and set the `INVITE_FROM_EMAIL`
+  Edge Function secret to an address on it, in staging and production. Until
+  then staging can only send from `onboarding@resend.dev`, which Resend delivers
+  only to the Resend account's own email.
 
 ### Pre-launch requirements (not features)
 

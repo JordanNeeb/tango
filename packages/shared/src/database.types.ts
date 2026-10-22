@@ -39,14 +39,14 @@ export type Database = {
                   ]
                 },"family_invites": {
                   Row: {
-                    "accepted_at": string | null,"created_at": string,"expires_at": string,"family_id": string | null,"id": string,"invited_by": string,"invited_email": string,"last_sent_at": string | null,"status": string,"time_zone": string,"token": string
+                    "accepted_at": string | null,"created_at": string,"expires_at": string,"family_id": string | null,"id": string,"invited_by": string,"invited_email": string,"last_sent_at": string | null,"send_count": number,"status": string,"time_zone": string,"token": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_at"?: string | null,"created_at"?: string,"expires_at"?: string,"family_id"?: string | null,"id"?: string,"invited_by": string,"invited_email": string,"last_sent_at"?: string | null,"status"?: string,"time_zone": string,"token"?: string
+                    "accepted_at"?: string | null,"created_at"?: string,"expires_at"?: string,"family_id"?: string | null,"id"?: string,"invited_by": string,"invited_email": string,"last_sent_at"?: string | null,"send_count"?: number,"status"?: string,"time_zone": string,"token"?: string
                   }
                   Update: {
-                    "accepted_at"?: string | null,"created_at"?: string,"expires_at"?: string,"family_id"?: string | null,"id"?: string,"invited_by"?: string,"invited_email"?: string,"last_sent_at"?: string | null,"status"?: string,"time_zone"?: string,"token"?: string
+                    "accepted_at"?: string | null,"created_at"?: string,"expires_at"?: string,"family_id"?: string | null,"id"?: string,"invited_by"?: string,"invited_email"?: string,"last_sent_at"?: string | null,"send_count"?: number,"status"?: string,"time_zone"?: string,"token"?: string
                   }
                   Relationships: [
                     {

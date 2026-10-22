@@ -98,7 +98,9 @@ export const fr: Messages = {
       alreadyPaired: 'Vous êtes déjà coparents avec cette personne.',
       pendingExists: 'Il y a déjà une invitation en attente entre vous et cette personne.',
       tooSoon: 'Attendez une minute avant de renvoyer.',
-      inviteLimit: "Vous avez envoyé 5 invitations aujourd'hui. Réessayez demain.",
+      sendLimit:
+        'Cette invitation a été envoyée 10 fois, le maximum permis. Demandez à votre coparent de vérifier ses courriels indésirables.',
+      inviteLimit: "Vous avez envoyé 10 invitations aujourd'hui. Réessayez demain.",
       sendFailed: "Nous n'avons pas pu envoyer le courriel. Réessayez.",
       unavailable: "Cette invitation n'est plus disponible.",
       emailMismatch: 'Cette invitation a été envoyée à une autre adresse courriel.',

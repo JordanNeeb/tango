@@ -158,7 +158,9 @@ export const en = {
       alreadyPaired: "You're already co-parents with this person.",
       pendingExists: "There's already a pending invite between you and this person.",
       tooSoon: 'Wait a minute before sending again.',
-      inviteLimit: "You've sent 5 invites today. Try again tomorrow.",
+      sendLimit:
+        'This invite has been sent 10 times, the most allowed. Ask your co-parent to check their spam folder.',
+      inviteLimit: "You've sent 10 invites today. Try again tomorrow.",
       sendFailed: "We couldn't send the email. Try again.",
       unavailable: "This invite isn't available anymore.",
       emailMismatch: 'This invite was sent to another email address.',

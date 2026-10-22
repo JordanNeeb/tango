@@ -87,14 +87,6 @@
 **Suggested fix:** If it shows up later, compare against `u.email` directly after confirming stored auth emails are always lowercase, or look up through `public.profiles` joined by id. No current requirement is lost.
 **Resolution:**
 
-### F-14 [P2] open - Send again is limited only to once a minute per invite, for 7 days
-
-**File:** supabase/migrations/20261020102645_family_invites.sql:162
-**Found:** 2026-10-20 by /audit independent (scope: current; lens: security, performance)
-**Why it matters:** `mark_family_invite_sent` is the only limit on email sends and allows one send per invite every 60 seconds for as long as the invite is pending (7 days). Calling `send-family-invite` directly (or pressing Send again) therefore emails the same address up to about 1,440 times a day per invite, and with up to 5 new invites a day a single account can keep dozens of live invites. Each email comes from Tango's domain with the inviter's free-text name, so one account can repeatedly mail a recipient and spend Resend quota and sender reputation in staging and production. F-11's cap limits how many addresses are reachable, not how often they are mailed.
-**Suggested fix:** Bound sends per invite in `mark_family_invite_sent`, for example a `send_count` column in this unpushed migration with a small maximum (such as 3 to 5 sends per invite, raising a new code mapped to copy), or a longer throttle after the first resend. No current requirement is lost; the owner picks the number.
-**Resolution:**
-
 ### F-15 [P3] open - A parent who already has a family gets no result after following an invite link
 
 **File:** apps/web/src/app/[lang]/dashboard/page.tsx:87

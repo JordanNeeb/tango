@@ -44,6 +44,8 @@ function inviteErrorMessage(code: string | undefined, errors: InviteErrors): str
       return errors.inviteLimit;
     case "too_soon":
       return errors.tooSoon;
+    case "send_limit":
+      return errors.sendLimit;
     case "send_failed":
       return errors.sendFailed;
     case "invite_unavailable":
