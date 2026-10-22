@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@tango/shared"],
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    agentUpgrade: "security",
+  },
   turbopack: {
     rules: {
       "*.css": {
