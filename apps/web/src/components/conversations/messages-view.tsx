@@ -13,10 +13,10 @@ import { type FamilyMessages } from "./types";
 
 export type MessagesMode = "list" | "conversation" | "new";
 
-// The parent's messages pages in the multi-column shell. From xl the list sits
-// in the secondary column beside the chat; below xl the secondary column is
-// hidden, so /messages shows the list in main and a conversation or the new
-// conversation form replaces it. Without a family there is nothing to list, so
+// The parent's messages pages in the multi-column shell. From 1050px (the
+// `split` breakpoint) the list sits in the secondary column beside the chat;
+// below it the secondary column is hidden, so /messages shows the list in main
+// and a conversation or the new conversation form replaces it. Without a family there is nothing to list, so
 // the page uses the full sidebar and one section offering an invite or Solo.
 export function MessagesView({
   userName,
@@ -57,12 +57,14 @@ export function MessagesView({
   if (selected) {
     content = <ChatPanel key={selected.id} conversation={selected} names={names} />;
   } else if (mode === "new") {
-    content = <NewConversationForm familyId={family.familyId} />;
+    content = (
+      <NewConversationForm contacts={[{ familyId: family.familyId, name: names.coParent }]} />
+    );
   } else {
     content = (
       <>
-        <div className="h-full overflow-y-auto xl:hidden">{list}</div>
-        <div className="hidden h-full xl:block">
+        <div className="h-full overflow-y-auto split:hidden">{list}</div>
+        <div className="hidden h-full split:block">
           <EmptyState title={messages.selectTitle} description={messages.selectDescription} />
         </div>
       </>

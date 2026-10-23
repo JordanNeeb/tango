@@ -41,7 +41,8 @@ import { useShellUi } from "./ui-context";
 // `(app)` layout while pages change. A page that sets an `aside` through the
 // UI context (`ShellPage`) switches it to the multi-column layout
 // (design/references/tailwind-plus/application/multi-column-dashboard-light.jsx and -dark.jsx):
-// an icon rail on desktop and a secondary column beside the content at xl.
+// an icon rail on desktop and a secondary column beside the content from
+// 1050px (the `split` breakpoint).
 
 export type NavigationItem = {
   name: string;
@@ -174,7 +175,7 @@ function Sidebar({
 // screen readers, and Settings at the bottom.
 function Rail({ navigation }: { navigation: NavigationItem[] }) {
   return (
-    <div className="hidden dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:border-r dark:before:border-white/10 dark:before:bg-black/10 lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-20 lg:flex-col lg:overflow-y-auto lg:bg-gray-900 lg:pb-4">
+    <div className="hidden dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:border-r dark:before:border-white/10 dark:before:bg-black/10 rail:fixed rail:inset-y-0 rail:left-0 rail:z-50 rail:flex rail:w-20 rail:flex-col rail:overflow-y-auto rail:bg-gray-900 rail:pb-4">
       <div className="relative flex h-16 shrink-0 items-center justify-center">
         <Logo mark href="/dashboard" />
       </div>
@@ -225,6 +226,9 @@ export function DashboardShell({
   const ui = useShellUi();
   const { aside, title } = ui;
   const columns = ui.columns ?? defaultColumns;
+  // The rail shows from 600px, the full sidebar from lg; below that, the menu
+  // button opens the sidebar as a drawer.
+  const drawerOnly = columns ? "rail:hidden" : "lg:hidden";
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -235,7 +239,7 @@ export function DashboardShell({
       <Dialog
         open={sidebarOpen}
         onClose={setSidebarOpen}
-        className="relative z-50 lg:hidden"
+        className={`relative z-50 ${drawerOnly}`}
       >
         <DialogBackdrop
           transition
@@ -282,12 +286,12 @@ export function DashboardShell({
         </div>
       )}
 
-      <div className={columns ? "lg:pl-20" : "lg:pl-72"}>
+      <div className={columns ? "rail:pl-20" : "lg:pl-72"}>
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-xs dark:border-white/10 dark:bg-gray-900 sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 lg:hidden dark:text-gray-400 dark:hover:text-white"
+            className={`-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 ${drawerOnly} dark:text-gray-400 dark:hover:text-white`}
           >
             <span className="sr-only">{dashboard.openSidebar}</span>
             <Bars3Icon aria-hidden="true" className="size-6" />
@@ -296,7 +300,7 @@ export function DashboardShell({
           {/* Separator */}
           <div
             aria-hidden="true"
-            className="h-6 w-px bg-gray-900/10 lg:hidden dark:bg-white/10"
+            className={`h-6 w-px bg-gray-900/10 ${drawerOnly} dark:bg-white/10`}
           />
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
@@ -379,7 +383,7 @@ export function DashboardShell({
           </div>
         </div>
 
-        <main className={columns ? "xl:pl-96" : "py-10"}>
+        <main className={columns ? "split:pl-96" : "py-10"}>
           <h1 className="sr-only">{title ?? dashboard.title}</h1>
           {columns ? (
             children
@@ -390,7 +394,7 @@ export function DashboardShell({
       </div>
 
       {columns ? (
-        <aside className="fixed top-16 bottom-0 left-20 hidden w-96 overflow-y-auto border-r border-gray-200 xl:block dark:border-white/10">
+        <aside className="fixed top-16 bottom-0 left-20 hidden w-96 overflow-y-auto border-r border-gray-200 split:block dark:border-white/10">
           {aside}
         </aside>
       ) : null}

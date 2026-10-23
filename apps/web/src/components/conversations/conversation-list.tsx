@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "@heroicons/react/20/solid";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
@@ -14,10 +14,11 @@ import { useDateFormat } from "./use-date-format";
 
 // Ported from the Tailwind Plus narrow stacked list
 // (design/references/tailwind-plus/application/narrow-stacked-list-dark.jsx).
-// Each row shows the latest sender, the subject in place of the name, and a
+// Each row shows the co-parent, the subject in place of the name, and a
 // preview of the latest message. The co-parent's latest messages are recorded
 // as delivered when the list loads, and as previewed while it's on screen
-// (the secondary column is display:none below xl, so it doesn't count there).
+// (the secondary column is display:none below the `split` breakpoint, so it
+// doesn't count there).
 export function ConversationList({
   conversations,
   names,
@@ -50,10 +51,10 @@ export function ConversationList({
         </h2>
         <Link
           href="/messages/new"
-          className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500"
+          className="-m-2.5 rounded-md p-2.5 text-gray-500 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-indigo-600 dark:text-gray-400 dark:hover:text-white dark:focus-visible:outline-indigo-500"
         >
-          <PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
-          {messages.newConversation}
+          <span className="sr-only">{messages.newConversation}</span>
+          <PencilSquareIcon aria-hidden="true" className="size-5.5" />
         </Link>
       </div>
       {conversations.length === 0 ? (
@@ -72,7 +73,7 @@ export function ConversationList({
                     selected ? "bg-gray-50 dark:bg-white/5" : ""
                   }`}
                 >
-                  <InitialsAvatar name={latest ? names[latest.sender] : ""} />
+                  <InitialsAvatar name={names.coParent} />
                   <div className="min-w-0 flex-auto">
                     <div className="flex items-baseline justify-between gap-x-4">
                       <p className="truncate text-sm/6 font-semibold text-gray-900 dark:text-white">

@@ -1,18 +1,15 @@
 "use client";
 
-import {
-  ChevronLeftIcon,
-  PaperAirplaneIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useActionState, useEffect, useId, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { sendMessage } from "@/app/[lang]/(app)/messages/actions";
-import { errorTextClass } from "@/components/auth/styles";
 import { useFocusFirstError } from "@/components/auth/use-focus-first-error";
 import { type ConversationActionResult } from "@/lib/conversations";
 import { useMessages } from "@/lib/i18n/language-provider";
 
+import { ComposerField } from "./composer-field";
 import { InitialsAvatar } from "./initials-avatar";
 import { recordStatus, useOnShown } from "./message-status";
 import {
@@ -38,37 +35,23 @@ function groupByDay(messages: ConversationMessage[], format: DateFormat) {
   return groups;
 }
 
-// The latest message's status, shown to both parents: when it was sent, then
-// each status the recipient has reached, in order.
+// Under the viewer's latest sent message: the furthest status the co-parent
+// has reached and its time. Nothing until it is delivered.
 function MessageStatusLine({
-  sentAt,
   status,
   format,
 }: {
-  sentAt: string;
   status: Partial<Record<MessageStatus, string>>;
   format: DateFormat;
 }) {
   const labels = useMessages().conversations.status;
-  const recorded = [
-    { kind: "sent" as const, at: sentAt },
-    ...MESSAGE_STATUSES.flatMap((kind) => {
-      const at = status[kind];
-      return at ? [{ kind, at }] : [];
-    }),
-  ];
+  const kind = MESSAGE_STATUSES.findLast((known) => status[known]);
+  const at = kind ? status[kind] : undefined;
+  if (!kind || !at) return null;
   return (
     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
       <span className="sr-only">{labels.label}: </span>
-      {recorded.map(({ kind, at }, index) => (
-        <span key={kind}>
-          {index > 0 ? <span aria-hidden="true"> · </span> : null}
-          <time dateTime={at}>
-            {labels[kind].replace("{time}", () => format.dateTime(at))}
-          </time>
-          {index < recorded.length - 1 ? <span className="sr-only">, </span> : null}
-        </span>
-      ))}
+      <time dateTime={at}>{labels[kind].replace("{time}", () => format.time(at))}</time>
     </p>
   );
 }
@@ -82,13 +65,14 @@ function MessageBubble({
   message: ConversationMessage;
   names: Record<Sender, string>;
   format: DateFormat;
-  // Only for the latest message.
+  // Only for the viewer's latest sent message.
   status?: Partial<Record<MessageStatus, string>>;
 }) {
+  // Received messages show when they were sent; the viewer's own show only
+  // the latest one's status.
   const mine = message.sender === "me";
   return (
-    <li className={`flex gap-x-3 ${mine ? "justify-end" : ""}`}>
-      {mine ? null : <InitialsAvatar name={names[message.sender]} size="sm" />}
+    <li className={`flex ${mine ? "justify-end" : ""}`}>
       <div
         className={`flex max-w-[75%] min-w-0 flex-col ${mine ? "items-end" : "items-start"}`}
       >
@@ -102,8 +86,8 @@ function MessageBubble({
           <span className="sr-only">{names[message.sender]}: </span>
           {message.body}
         </p>
-        {status ? (
-          <MessageStatusLine sentAt={message.createdAt} status={status} format={format} />
+        {mine ? (
+          status ? <MessageStatusLine status={status} format={format} /> : null
         ) : (
           <time
             dateTime={message.createdAt}
@@ -120,8 +104,6 @@ function MessageBubble({
 // Sends one message. React resets the form after each submission, so the text
 // comes back from the result after an error; after a send it clears.
 function Composer({ conversationId }: { conversationId: string }) {
-  const messages = useMessages().conversations;
-  const composerId = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const [hasText, setHasText] = useState(false);
   const [state, formAction, pending] = useActionState<ConversationActionResult, FormData>(
@@ -134,7 +116,6 @@ function Composer({ conversationId }: { conversationId: string }) {
   );
   useFocusFirstError(formRef, state);
 
-  const error = state.fieldErrors?.body;
   return (
     <form
       ref={formRef}
@@ -151,41 +132,18 @@ function Composer({ conversationId }: { conversationId: string }) {
         </p>
       ) : null}
       <input type="hidden" name="conversationId" value={conversationId} />
-      <div className="flex items-end gap-x-3">
-        <label htmlFor={composerId} className="sr-only">
-          {messages.composerLabel}
-        </label>
-        <textarea
-          id={composerId}
-          name="body"
-          rows={1}
-          placeholder={messages.composerPlaceholder}
-          defaultValue={state.values?.body}
-          readOnly={pending}
-          onChange={(event) => setHasText(event.target.value.trim() !== "")}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${composerId}-error` : undefined}
-          className="block min-h-11 flex-1 resize-none rounded-3xl bg-white px-4 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 aria-invalid:outline-red-500 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500 dark:aria-invalid:outline-red-400"
-        />
-        <button
-          type="submit"
-          disabled={pending || !hasText}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500 dark:disabled:hover:bg-indigo-500"
-        >
-          <span className="sr-only">{pending ? messages.sending : messages.send}</span>
-          <PaperAirplaneIcon aria-hidden="true" className="size-5" />
-        </button>
-      </div>
-      {error ? (
-        <p id={`${composerId}-error`} className={errorTextClass}>
-          {error}
-        </p>
-      ) : null}
+      <ComposerField
+        defaultValue={state.values?.body}
+        error={state.fieldErrors?.body}
+        pending={pending}
+        canSend={hasText}
+        onTextChange={setHasText}
+      />
     </form>
   );
 }
 
-// The open conversation: header, messages grouped by day, the latest message's
+// The open conversation: header, messages grouped by day, your latest message's
 // status, and the composer. The co-parent's messages are recorded as delivered
 // when they load, and as read while the conversation is open in a visible tab.
 export function ChatPanel({
@@ -224,12 +182,12 @@ export function ChatPanel({
       <div className="flex items-center gap-x-4 border-b border-gray-200 px-4 py-4 sm:px-6 lg:px-8 dark:border-white/10">
         <Link
           href="/messages"
-          className="-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 xl:hidden dark:text-gray-400 dark:hover:text-white"
+          className="-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 split:hidden dark:text-gray-400 dark:hover:text-white"
         >
           <span className="sr-only">{messages.back}</span>
           <ChevronLeftIcon aria-hidden="true" className="size-6" />
         </Link>
-        <InitialsAvatar name={names[conversation.startedBy]} />
+        <InitialsAvatar name={names.coParent} />
         <div className="min-w-0">
           <h2 className="truncate text-base/7 font-semibold text-gray-900 dark:text-white">
             {conversation.subject}
@@ -269,7 +227,11 @@ export function ChatPanel({
                   message={message}
                   names={names}
                   format={format}
-                  status={message.id === latestId ? conversation.latestStatus : undefined}
+                  status={
+                    message.id === conversation.latestSent?.id
+                      ? conversation.latestSent.status
+                      : undefined
+                  }
                 />
               ))}
             </ol>

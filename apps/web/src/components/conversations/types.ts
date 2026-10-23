@@ -27,8 +27,16 @@ export type ConversationDetail = {
   startedBy: Sender;
   // Oldest first.
   messages: ConversationMessage[];
-  // The recipient's first time for each status of the latest message.
-  latestStatus: Partial<Record<MessageStatus, string>>;
+  // The viewer's latest sent message and the co-parent's time for each status
+  // it has reached. Null until the viewer has sent one.
+  latestSent: { id: string; status: Partial<Record<MessageStatus, string>> } | null;
+};
+
+// Someone a parent can start a conversation with: a co-parent, through the
+// family they share.
+export type Contact = {
+  familyId: string;
+  name: string;
 };
 
 // A paired parent's messages page data, loaded on the server.

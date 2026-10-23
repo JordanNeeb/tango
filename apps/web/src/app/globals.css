@@ -26,6 +26,11 @@
   --color-indigo-800: oklch(39.8% 0.195 271.2);
   --color-indigo-900: oklch(35.9% 0.144 271.2);
   --color-indigo-950: oklch(25.7% 0.09 271.2);
+
+  /* 600px: where the messages pages show the sidebar rail. */
+  --breakpoint-rail: 37.5rem;
+  /* 1050px: where the messages pages split into the list and the chat. */
+  --breakpoint-split: 65.625rem;
 }
 
 @media (prefers-color-scheme: dark) {

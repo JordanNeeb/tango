@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  type ConversationDetail,
   type ConversationSummary,
   type FamilyMessages,
   MESSAGE_STATUSES,
@@ -125,21 +126,24 @@ export async function loadFamilyMessages(
     return "error";
   }
 
-  const latestStatus: Partial<Record<MessageStatus, string>> = {};
-  const latest = messages.at(-1);
-  if (latest) {
+  // Only the parent's own latest message shows the co-parent's statuses.
+  let latestSent: ConversationDetail["latestSent"] = null;
+  const mine = messages.findLast((message) => message.sender_id === userId);
+  if (mine) {
     const { data: receipts, error: receiptsError } = await supabase
       .from("message_receipts")
       .select("kind, created_at")
-      .eq("message_id", latest.id);
+      .eq("message_id", mine.id);
     if (receiptsError) {
       logFailure("receipts", receiptsError);
       return "error";
     }
+    const status: Partial<Record<MessageStatus, string>> = {};
     for (const receipt of receipts) {
-      const kind = MESSAGE_STATUSES.find((status) => status === receipt.kind);
-      if (kind) latestStatus[kind] = receipt.created_at;
+      const kind = MESSAGE_STATUSES.find((known) => known === receipt.kind);
+      if (kind) status[kind] = receipt.created_at;
     }
+    latestSent = { id: mine.id, status };
   }
 
   result.selected = {
@@ -152,7 +156,7 @@ export async function loadFamilyMessages(
       body: message.body,
       createdAt: message.created_at,
     })),
-    latestStatus,
+    latestSent,
   };
   return result;
 }
