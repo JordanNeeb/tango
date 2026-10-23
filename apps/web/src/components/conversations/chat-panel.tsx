@@ -7,7 +7,7 @@ import {
 import Link from "next/link";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 
-import { sendMessage } from "@/app/[lang]/messages/actions";
+import { sendMessage } from "@/app/[lang]/(app)/messages/actions";
 import { errorTextClass } from "@/components/auth/styles";
 import { useFocusFirstError } from "@/components/auth/use-focus-first-error";
 import { type ConversationActionResult } from "@/lib/conversations";

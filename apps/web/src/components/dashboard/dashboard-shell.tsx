@@ -29,16 +29,17 @@ import { useOnShown } from "@/components/conversations/message-status";
 import { useMessages } from "@/lib/i18n/language-provider";
 
 import { SettingsMenu } from "./settings-menu";
+import { useShellUi } from "./ui-context";
 
 // Ported from the Tailwind Plus application shell
 // (design/references/tailwind-plus/application/dashboard-light.jsx and
 // dashboard-dark.jsx). It follows the OS theme, except the sidebar, which is
 // dark in both themes as in the references.
-// The shell holds what every dashboard shares: the logo, search and
+// The shell holds what every signed-in page shares: the logo, search and
 // notifications (still the reference's placeholders), the user's name,
-// Settings (language), Your profile, and Sign out. Each dashboard passes its
-// own sidebar navigation, optional teams, and content. Passing `aside` switches
-// to the multi-column layout
+// Settings (language), Your profile, and Sign out. It stays mounted in the
+// `(app)` layout while pages change. A page that sets an `aside` through the
+// UI context (`ShellPage`) switches it to the multi-column layout
 // (design/references/tailwind-plus/application/multi-column-dashboard-light.jsx and -dark.jsx):
 // an icon rail on desktop and a secondary column beside the content at xl.
 
@@ -115,7 +116,7 @@ function Sidebar({
             <ul role="list" className="-mx-2 space-y-1">
               {navigation.map((item) => (
                 <li key={item.name}>
-                  <a
+                  <Link
                     href={item.href}
                     aria-current={item.current ? "page" : undefined}
                     className={classNames(
@@ -128,7 +129,7 @@ function Sidebar({
                     <item.icon aria-hidden="true" className="size-6 shrink-0" />
                     {item.name}
                     {item.count ? <CountBadge item={item} /> : null}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -141,7 +142,7 @@ function Sidebar({
               <ul role="list" className="-mx-2 mt-2 space-y-1">
                 {teams.map((team) => (
                   <li key={team.id}>
-                    <a
+                    <Link
                       href={team.href}
                       className={classNames(
                         team.current
@@ -154,7 +155,7 @@ function Sidebar({
                         {team.initial}
                       </span>
                       <span className="truncate">{team.name}</span>
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -181,7 +182,7 @@ function Rail({ navigation }: { navigation: NavigationItem[] }) {
         <ul role="list" className="flex flex-col items-center space-y-1">
           {navigation.map((item) => (
             <li key={item.name}>
-              <a
+              <Link
                 href={item.href}
                 aria-current={item.current ? "page" : undefined}
                 className={classNames(
@@ -194,7 +195,7 @@ function Rail({ navigation }: { navigation: NavigationItem[] }) {
                 <item.icon aria-hidden="true" className="size-6 shrink-0" />
                 <span className="sr-only">{item.name}</span>
                 {item.count ? <CountBadge item={item} rail /> : null}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
@@ -210,18 +211,20 @@ export function DashboardShell({
   userName,
   navigation,
   teams,
-  title,
-  aside,
+  defaultColumns = false,
   children,
 }: {
   userName: string;
   navigation: NavigationItem[];
   teams?: TeamItem[];
-  title?: string;
-  aside?: ReactNode;
+  // The layout before the page sets one, such as while it loads.
+  defaultColumns?: boolean;
   children?: ReactNode;
 }) {
   const { dashboard } = useMessages();
+  const ui = useShellUi();
+  const { aside, title } = ui;
+  const columns = ui.columns ?? defaultColumns;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -267,7 +270,7 @@ export function DashboardShell({
       </Dialog>
 
       {/* Static sidebar for desktop */}
-      {aside ? (
+      {columns ? (
         <Rail navigation={navigation} />
       ) : (
         <div className="hidden bg-gray-900 ring-1 ring-white/10 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
@@ -279,7 +282,7 @@ export function DashboardShell({
         </div>
       )}
 
-      <div className={aside ? "lg:pl-20" : "lg:pl-72"}>
+      <div className={columns ? "lg:pl-20" : "lg:pl-72"}>
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-xs dark:border-white/10 dark:bg-gray-900 sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
@@ -376,9 +379,9 @@ export function DashboardShell({
           </div>
         </div>
 
-        <main className={aside ? "xl:pl-96" : "py-10"}>
+        <main className={columns ? "xl:pl-96" : "py-10"}>
           <h1 className="sr-only">{title ?? dashboard.title}</h1>
-          {aside ? (
+          {columns ? (
             children
           ) : (
             <div className="px-4 sm:px-6 lg:px-8">{children}</div>
@@ -386,7 +389,7 @@ export function DashboardShell({
         </main>
       </div>
 
-      {aside ? (
+      {columns ? (
         <aside className="fixed top-16 bottom-0 left-20 hidden w-96 overflow-y-auto border-r border-gray-200 xl:block dark:border-white/10">
           {aside}
         </aside>

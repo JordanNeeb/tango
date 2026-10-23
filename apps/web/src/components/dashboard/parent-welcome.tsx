@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useRef, useSyncExternalStore } from "react";
 
-import { resendInvite, sendInvite } from "@/app/[lang]/dashboard/actions";
+import { resendInvite, sendInvite } from "@/app/[lang]/(app)/dashboard/actions";
 import { FormAlert, SubmitButton } from "@/components/auth/fields";
 import { errorTextClass, linkClass } from "@/components/auth/styles";
 import { useFocusFirstError } from "@/components/auth/use-focus-first-error";

@@ -3,7 +3,6 @@ import { type Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { ParentDashboard } from "@/components/dashboard/parent-dashboard";
 import { ProfessionalDashboard } from "@/components/dashboard/professional-dashboard";
 import { loadFamilyId, loadWelcome } from "@/lib/families";
@@ -17,10 +16,6 @@ export async function generateMetadata({
   return { title: dashboard.title };
 }
 
-// Shows the user's name, falling back to their email when no name is saved or
-// the profile can't be read. Professionals get the professional dashboard;
-// parents and accounts without a type get the parent dashboard. A failed read
-// shows an error in the bare shell rather than guessing which one to show.
 // Explains a failed accept after an invite link (codes from the database, set
 // by the link and sign-in routes). Unknown codes show nothing.
 function inviteMessage(code: unknown, messages: Messages): string | undefined {
@@ -38,6 +33,18 @@ function inviteMessage(code: unknown, messages: Messages): string | undefined {
   }
 }
 
+function LoadError({ message }: { message: string }) {
+  return (
+    <p className="rounded-md bg-red-50 p-4 text-sm text-red-800 dark:bg-red-500/15 dark:text-red-300">
+      {message}
+    </p>
+  );
+}
+
+// The shell comes from the `(app)` layout. Professionals get the professional
+// dashboard, greeted by name (or email when no name is saved); parents and
+// accounts without a type get the parent dashboard. A failed read shows an
+// error rather than guessing which one to show.
 async function Dashboard({
   searchParams,
 }: {
@@ -54,22 +61,13 @@ async function Dashboard({
     .eq("id", claims.sub)
     .single();
 
-  const userName = profile?.name?.trim() || (claims.email ?? "");
-
   if (error) {
     console.error("[dashboard] profile load failed", { code: error.code, message: error.message });
-    const { auth } = await requestMessages();
-    return (
-      <DashboardShell userName={userName} navigation={[]}>
-        <p className="rounded-md bg-red-50 p-4 text-sm text-red-800 dark:bg-red-500/15 dark:text-red-300">
-          {auth.errors.unexpected}
-        </p>
-      </DashboardShell>
-    );
+    return <LoadError message={(await requestMessages()).auth.errors.unexpected} />;
   }
 
   if (profile.account_type === "professional") {
-    return <ProfessionalDashboard userName={userName} />;
+    return <ProfessionalDashboard userName={profile.name?.trim() || (claims.email ?? "")} />;
   }
 
   const familyId = await loadFamilyId(supabase, claims.sub);
@@ -78,31 +76,16 @@ async function Dashboard({
       ? await loadWelcome(supabase, claims.sub, Boolean(profile.name?.trim()))
       : undefined;
   if (familyId === "error" || welcome === "error") {
-    const { auth } = await requestMessages();
-    return (
-      <DashboardShell userName={userName} navigation={[]}>
-        <p className="rounded-md bg-red-50 p-4 text-sm text-red-800 dark:bg-red-500/15 dark:text-red-300">
-          {auth.errors.unexpected}
-        </p>
-      </DashboardShell>
-    );
+    return <LoadError message={(await requestMessages()).auth.errors.unexpected} />;
   }
   const { invite } = await searchParams;
   const inviteError = welcome ? inviteMessage(invite, await requestMessages()) : undefined;
-  return (
-    <ParentDashboard
-      userName={userName}
-      familyId={familyId}
-      welcome={welcome}
-      inviteError={inviteError}
-    />
-  );
+  return <ParentDashboard welcome={welcome} inviteError={inviteError} />;
 }
 
 export default function DashboardPage({ searchParams }: PageProps<"/[lang]/dashboard">) {
   return (
-    // The fallback is the bare shell, since the dashboard type isn't known yet.
-    <Suspense fallback={<DashboardShell userName="" navigation={[]} />}>
+    <Suspense>
       <Dashboard searchParams={searchParams} />
     </Suspense>
   );

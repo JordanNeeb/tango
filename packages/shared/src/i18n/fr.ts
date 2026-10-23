@@ -167,12 +167,12 @@ export const fr: Messages = {
     composerPlaceholder: 'Écrivez votre message',
     send: 'Envoyer',
     noCoParent: {
-      title: 'Ajoutez un coparent pour commencer à échanger',
       description:
-        'Les conversations se font entre vous et votre coparent. Invitez-le depuis votre tableau de bord : vous pourrez en commencer une dès son acceptation.',
+        "Dans Tango, les messages s'échangent entre vous et votre coparent : ajoutez votre coparent pour commencer à échanger. Ou {upgrade} : avec Solo, vous pouvez appeler n'importe quel téléphone ou lui envoyer un texto, sans coparent.",
       pending: "Votre invitation à {email} attend d'être acceptée.",
       invite: 'Inviter votre coparent',
       viewInvite: 'Voir votre invitation',
+      upgrade: 'passez à Solo',
     },
     sending: 'Envoi',
     newConversation: 'Nouvelle conversation',

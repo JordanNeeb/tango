@@ -152,12 +152,12 @@ export const en = {
     composerPlaceholder: 'Write your message',
     send: 'Send',
     noCoParent: {
-      title: 'Add a co-parent to start messaging',
       description:
-        "Conversations are between you and your co-parent. Invite them from your dashboard, and you can start one as soon as they accept.",
+        "Messages in Tango are between you and your co-parent, so add your co-parent to start messaging. Or {upgrade}: with Solo, you can call or text anyone's phone, no co-parent needed.",
       pending: 'Your invite to {email} is waiting for them to accept.',
       invite: 'Invite your co-parent',
       viewInvite: 'View your invite',
+      upgrade: 'upgrade to Solo',
     },
     sending: 'Sending',
     newConversation: 'New conversation',

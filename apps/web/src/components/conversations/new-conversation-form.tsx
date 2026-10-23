@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useRef } from "react";
 
-import { startConversation } from "@/app/[lang]/messages/actions";
+import { startConversation } from "@/app/[lang]/(app)/messages/actions";
 import { FormAlert, SubmitButton } from "@/components/auth/fields";
 import {
   errorTextClass,

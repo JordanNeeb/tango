@@ -1,7 +1,6 @@
 import { type Metadata } from "next";
 import { Suspense } from "react";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { pageMessages } from "@/lib/i18n/server";
 
 import { MessagesPage } from "../messages-page";
@@ -24,7 +23,7 @@ async function Conversation({
 
 export default function ConversationPage({ params }: PageProps<"/[lang]/messages/[conversationId]">) {
   return (
-    <Suspense fallback={<DashboardShell userName="" navigation={[]} aside={<div />} />}>
+    <Suspense>
       <Conversation params={params} />
     </Suspense>
   );

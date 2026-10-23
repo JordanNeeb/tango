@@ -1,8 +1,7 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { parentNavigation } from "@/components/dashboard/parent-navigation";
 import { type WelcomeData } from "@/components/dashboard/parent-welcome";
+import { ShellPage } from "@/components/dashboard/ui-context";
 import { useMessages } from "@/lib/i18n/language-provider";
 
 import { ChatPanel } from "./chat-panel";
@@ -11,15 +10,14 @@ import { EmptyState } from "./empty-state";
 import { NewConversationForm } from "./new-conversation-form";
 import { NoCoParentPrompt } from "./no-co-parent-prompt";
 import { type FamilyMessages } from "./types";
-import { useMessagesActivity } from "./use-messages-activity";
 
 export type MessagesMode = "list" | "conversation" | "new";
 
 // The parent's messages pages in the multi-column shell. From xl the list sits
 // in the secondary column beside the chat; below xl the secondary column is
 // hidden, so /messages shows the list in main and a conversation or the new
-// conversation form replaces it. Without a family, the page keeps that layout
-// and prompts the parent to add a co-parent from their dashboard.
+// conversation form replaces it. Without a family there is nothing to list, so
+// the page uses the full sidebar and one section offering an invite or Solo.
 export function MessagesView({
   userName,
   mode,
@@ -31,32 +29,13 @@ export function MessagesView({
   family?: FamilyMessages;
   welcome?: WelcomeData;
 }) {
-  const { dashboard, conversations: messages } = useMessages();
-  const unread = useMessagesActivity(family?.familyId ?? null, { refresh: true });
-  const navigation = parentNavigation(dashboard, "messages", unread);
+  const { conversations: messages } = useMessages();
 
   if (!family) {
-    // The same layout as with a family, with nothing to list and a prompt to
-    // add a co-parent in place of the chat.
-    const emptyList = (
-      <div>
-        <h2 className="px-4 pt-6 pb-2 text-base/7 font-semibold text-gray-900 sm:px-6 dark:text-white">
-          {messages.heading}
-        </h2>
-        <EmptyState title={messages.emptyTitle} description={messages.emptyDescription} />
-      </div>
-    );
     return (
-      <DashboardShell
-        userName={userName}
-        navigation={navigation}
-        title={messages.title}
-        aside={emptyList}
-      >
-        <div className="h-[calc(100dvh-4rem)]">
-          {welcome ? <NoCoParentPrompt welcome={welcome} /> : null}
-        </div>
-      </DashboardShell>
+      <ShellPage title={messages.title}>
+        {welcome ? <NoCoParentPrompt welcome={welcome} /> : null}
+      </ShellPage>
     );
   }
 
@@ -91,8 +70,8 @@ export function MessagesView({
   }
 
   return (
-    <DashboardShell userName={userName} navigation={navigation} title={messages.title} aside={list}>
+    <ShellPage title={messages.title} aside={list}>
       <div className="h-[calc(100dvh-4rem)]">{content}</div>
-    </DashboardShell>
+    </ShellPage>
   );
 }
