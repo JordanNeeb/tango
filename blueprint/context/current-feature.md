@@ -16,9 +16,11 @@ document storage can be enforced once subscriptions exist (16c).
 
 - **Attaching.** A paperclip button in the composer, used by both an open
   conversation and the new message screen, picks up to **10 files per message**,
-  each up to **50 MB**. The picked files show as removable chips (name and size)
-  above the text box. A message needs text, attachments, or both. Subject rules
-  are unchanged.
+  each up to **50 MB**. Pasting files or screenshots into the text box adds them
+  too. Picked files show inside the input box, above the text: a small
+  thumbnail for photos the browser can show, otherwise an icon with the name and
+  size, each with a remove button. A message needs text, attachments, or both.
+  Subject rules are unchanged.
 - **Allowed types** (MIME type, checked in the browser and again on the server):
   - photos: `image/jpeg`, `image/png`, `image/webp`, `image/gif`,
     `image/heic`, `image/heif`
@@ -175,7 +177,8 @@ each time. `/complete` makes the feature commit.
 
 - [ ] **4. Picking and uploading in the composer.** Add a paperclip button and
   a hidden `<input type="file" multiple accept=…>` outside the form's submitted
-  fields, plus the chip list and its remove buttons, to the shared composer
+  fields, paste handling on the textarea, and in-box thumbnails with remove
+  buttons (photo previews are object URLs, released on remove) to the shared composer
   (`composer-field.tsx`, `chat-panel.tsx` `Composer`,
   `new-conversation-form.tsx`). On submit, the browser:
   1. validates the picked files

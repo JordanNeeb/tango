@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   type AttachmentInput,
+  attachmentKind,
   fileType,
   MAX_FILES,
   type PickError,
@@ -11,37 +12,59 @@ import {
 } from "@/lib/attachments";
 import { createClient } from "@/lib/supabase/client";
 
-// The files picked for the next message. Each pick keeps the files that pass
-// and reports the ones that don't (wrong type, over 50 MB, or past 10 files),
-// so nothing invalid is ever uploaded.
+// A picked file, with a local preview link for photos the browser can show.
+export type PickedFile = { file: File; preview: string | null };
+
+// The files picked or pasted for the next message. Each pick keeps the files
+// that pass and reports the ones that don't (wrong type, over 50 MB, or past
+// 10 files), so nothing invalid is ever uploaded. Photo previews are object
+// URLs, made when a file is added and released when it's removed or the
+// composer goes away.
 export function useAttachmentPicker() {
-  const [files, setFiles] = useState<File[]>([]);
+  const [items, setItems] = useState<PickedFile[]>([]);
   const [errors, setErrors] = useState<PickError[]>([]);
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  useEffect(() => () => release(itemsRef.current), []);
 
   const add = (picked: File[]) => {
     const problems: PickError[] = [];
-    const next = [...files];
+    const next = [...items];
     for (const file of picked) {
       const [problem] = validatePicked([file]);
       if (problem) problems.push(problem);
-      else if (next.length < MAX_FILES) next.push(file);
-      else if (!problems.some((known) => known.reason === "count")) problems.push({ reason: "count" });
+      else if (next.length < MAX_FILES) {
+        const preview =
+          attachmentKind(fileType(file) ?? "") === "image" ? URL.createObjectURL(file) : null;
+        next.push({ file, preview });
+      } else if (!problems.some((known) => known.reason === "count")) {
+        problems.push({ reason: "count" });
+      }
     }
-    setFiles(next);
+    setItems(next);
     setErrors(problems);
   };
 
   const remove = (index: number) => {
-    setFiles(files.filter((_, i) => i !== index));
+    release(items.filter((_, i) => i === index));
+    setItems(items.filter((_, i) => i !== index));
     setErrors([]);
   };
 
   const clear = () => {
-    setFiles([]);
+    release(items);
+    setItems([]);
     setErrors([]);
   };
 
-  return { files, errors, add, remove, clear };
+  return { items, files: items.map((item) => item.file), errors, add, remove, clear };
+}
+
+function release(items: PickedFile[]) {
+  for (const { preview } of items) if (preview) URL.revokeObjectURL(preview);
 }
 
 // Uploads the files to the family's folder in the attachments bucket, each
