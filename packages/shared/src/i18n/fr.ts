@@ -182,6 +182,18 @@ export const fr: Messages = {
     subjectLabel: 'Sujet',
     to: 'À',
     coParentFallback: 'Votre coparent',
+    attachments: {
+      attach: 'Joindre des fichiers',
+      label: 'Pièces jointes',
+      remove: 'Retirer {name}',
+      preview: 'Pièce jointe',
+      open: 'Ouvrir {name}',
+      play: 'Lire {name}',
+      download: 'Télécharger',
+      downloadName: 'Télécharger {name}',
+      close: 'Fermer',
+      uploading: 'Téléversement des fichiers',
+    },
     status: {
       label: 'État du message',
       delivered: 'Distribué {time}',
@@ -192,10 +204,16 @@ export const fr: Messages = {
     errors: {
       subjectRequired: 'Entrez un sujet.',
       subjectTooLong: 'Le sujet doit compter 150 caractères ou moins.',
-      bodyRequired: 'Écrivez un message.',
+      bodyRequired: 'Écrivez un message ou joignez un fichier.',
       bodyTooLong: 'Le message doit compter 10 000 caractères ou moins.',
       unavailable: "Cette conversation n'est pas disponible.",
       sendFailed: "Nous n'avons pas pu envoyer votre message. Réessayez.",
+      fileType:
+        "{name} ne peut pas être joint. Joignez des photos, des vidéos, des PDF ou des documents Office.",
+      fileSize: '{name} dépasse 50 Mo.',
+      fileCount: "Joignez jusqu'à 10 fichiers par message.",
+      uploadFailed: "Nous n'avons pas pu téléverser vos fichiers. Réessayez.",
+      attachFailed: "Ces fichiers n'ont pas pu être joints. Réessayez.",
     },
   },
   landing: {

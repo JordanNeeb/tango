@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  type ConversationAttachment,
   type ConversationDetail,
   type ConversationSummary,
   type FamilyConversations,
@@ -8,6 +9,7 @@ import {
   type MessageStatus,
   type Sender,
 } from "@/components/conversations/types";
+import { attachmentKind } from "@/lib/attachments";
 import { UUID } from "@/lib/conversations";
 import { loadFamilyId } from "@/lib/families";
 import { type createClient } from "@/lib/supabase/server";
@@ -18,6 +20,9 @@ type Failure = { code?: string; message: string };
 
 // About 3.7 KB of uuids per request URL.
 const UNREAD_BATCH = 100;
+
+// Attachment links last an hour; a live refresh or reload signs new ones.
+const SIGNED_URL_SECONDS = 60 * 60;
 
 function logFailure(what: string, error: Failure) {
   console.error(`[messages] ${what} load failed`, { code: error.code, message: error.message });
@@ -46,7 +51,9 @@ export async function loadConversations(
       .limit(1),
     supabase
       .from("conversation_previews")
-      .select("id, subject, started_by, latest_message_id, latest_sender_id, latest_body, latest_created_at")
+      .select(
+        "id, subject, started_by, latest_message_id, latest_sender_id, latest_body, latest_created_at, latest_attachment_count",
+      )
       .eq("family_id", familyId)
       .order("latest_created_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false }),
@@ -100,6 +107,7 @@ export async function loadConversations(
                     sender: sender(row.latest_sender_id),
                     body: row.latest_body,
                     createdAt: row.latest_created_at,
+                    attachmentCount: row.latest_attachment_count ?? 0,
                   }
                 : null,
           },
@@ -169,8 +177,12 @@ export async function loadConversation(
     latestSent = { id: mine.id, status };
   }
 
+  const attachments = await loadAttachments(supabase, conversation.id);
+  if (attachments === "error") return "error";
+
   return {
     id: conversation.id,
+    familyId: conversation.family_id,
     subject: conversation.subject,
     startedBy: sender(conversation.started_by),
     messages: messages.map((message) => ({
@@ -178,7 +190,63 @@ export async function loadConversation(
       sender: sender(message.sender_id),
       body: message.body,
       createdAt: message.created_at,
+      attachments: attachments.get(message.id) ?? [],
     })),
     latestSent,
   };
+}
+
+// A conversation's attachments by message, in upload order, with links signed
+// for an hour: one to open each file and one that downloads it under its
+// original name. A file that can't be signed keeps null links and is logged.
+async function loadAttachments(
+  supabase: Supabase,
+  conversationId: string,
+): Promise<Map<string, ConversationAttachment[]> | "error"> {
+  const { data: rows, error } = await supabase
+    .from("message_attachments")
+    .select("id, message_id, storage_path, file_name, mime_type, size_bytes, position, messages!inner(conversation_id)")
+    .eq("messages.conversation_id", conversationId)
+    .order("position", { ascending: true });
+  if (error) {
+    logFailure("attachments", error);
+    return "error";
+  }
+
+  const byMessage = new Map<string, ConversationAttachment[]>();
+  if (rows.length === 0) return byMessage;
+
+  const { data: signed, error: signError } = await supabase.storage
+    .from("attachments")
+    .createSignedUrls(
+      rows.map((row) => row.storage_path),
+      SIGNED_URL_SECONDS,
+    );
+  if (signError) {
+    logFailure("attachment links", signError);
+    return "error";
+  }
+  const urls = new Map(
+    signed.flatMap((link) => (link.path && !link.error ? [[link.path, link.signedUrl]] : [])),
+  );
+  if (urls.size < rows.length) {
+    logFailure("attachment links", { message: `${rows.length - urls.size} not signed` });
+  }
+
+  for (const row of rows) {
+    const url = urls.get(row.storage_path) ?? null;
+    const list = byMessage.get(row.message_id) ?? [];
+    list.push({
+      id: row.id,
+      name: row.file_name,
+      mimeType: row.mime_type,
+      sizeBytes: row.size_bytes,
+      kind: attachmentKind(row.mime_type),
+      url,
+      // Storage serves the file as a download under this name.
+      downloadUrl: url && `${url}&download=${encodeURIComponent(row.file_name)}`,
+    });
+    byMessage.set(row.message_id, list);
+  }
+  return byMessage;
 }

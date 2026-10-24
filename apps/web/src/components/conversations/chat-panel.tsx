@@ -7,9 +7,11 @@ import { useActionState, useEffect, useOptimistic, useRef, useState } from "reac
 
 import { sendMessage } from "@/app/[lang]/(app)/messages/actions";
 import { useFocusFirstError } from "@/components/auth/use-focus-first-error";
+import { attachmentKind, fileType } from "@/lib/attachments";
 import { type ConversationActionResult } from "@/lib/conversations";
 import { useMessages } from "@/lib/i18n/language-provider";
 
+import { AttachmentList } from "./attachment-list";
 import { ComposerField } from "./composer-field";
 import { InitialsAvatar } from "./initials-avatar";
 import { recordStatus, useOnShown } from "./message-status";
@@ -20,6 +22,7 @@ import {
   type MessageStatus,
   type Sender,
 } from "./types";
+import { appendAttachments, uploadAttachments, useAttachmentPicker } from "./use-attachments";
 import { useDateFormat } from "./use-date-format";
 
 type DateFormat = ReturnType<typeof useDateFormat>;
@@ -82,16 +85,25 @@ function MessageBubble({
       <div
         className={`flex max-w-[75%] min-w-0 flex-col ${mine ? "items-end" : "items-start"}`}
       >
-        <p
-          className={`rounded-2xl px-4 py-2.5 text-sm/6 break-words whitespace-pre-wrap ${
-            mine
-              ? "rounded-br-md bg-indigo-600 text-white dark:bg-indigo-500"
-              : "rounded-bl-md bg-gray-100 text-gray-900 dark:bg-white/5 dark:text-gray-200 dark:ring-1 dark:ring-white/10 dark:ring-inset"
-          }`}
-        >
-          <span className="sr-only">{names[message.sender]}: </span>
-          {message.body}
-        </p>
+        {message.body ? (
+          <p
+            className={`rounded-2xl px-4 py-2.5 text-sm/6 break-words whitespace-pre-wrap ${
+              mine
+                ? "rounded-br-md bg-indigo-600 text-white dark:bg-indigo-500"
+                : "rounded-bl-md bg-gray-100 text-gray-900 dark:bg-white/5 dark:text-gray-200 dark:ring-1 dark:ring-white/10 dark:ring-inset"
+            }`}
+          >
+            <span className="sr-only">{names[message.sender]}: </span>
+            {message.body}
+          </p>
+        ) : (
+          <span className="sr-only">{names[message.sender]}:</span>
+        )}
+        {message.attachments.length ? (
+          <div className={`w-full ${message.body ? "mt-2" : ""}`}>
+            <AttachmentList attachments={message.attachments} mine={mine} />
+          </div>
+        ) : null}
         {mine ? (
           message.sending ? (
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{sendingLabel}</p>
@@ -119,23 +131,39 @@ function MessageBubble({
 // refreshes once more after each send.
 function Composer({
   conversationId,
+  familyId,
   onSend,
 }: {
   conversationId: string;
-  onSend: (body: string) => void;
+  familyId: string;
+  onSend: (body: string, files: File[]) => void;
 }) {
   const router = useRouter();
+  const errors = useMessages().conversations.errors;
   const formRef = useRef<HTMLFormElement>(null);
   const [hasText, setHasText] = useState(false);
+  const picker = useAttachmentPicker();
   const [state, formAction, pending] = useActionState<ConversationActionResult, FormData>(
     async (previous, formData) => {
-      const body = String(formData.get("body") ?? "").trim();
-      if (body) {
-        onSend(body);
+      const text = String(formData.get("body") ?? "");
+      const files = picker.files;
+      if (text.trim() || files.length) {
+        onSend(text.trim(), files);
         formRef.current?.reset();
         setHasText(false);
       }
+      // Files go straight to storage first; the action gets their paths. The
+      // picked files stay until the message is sent.
+      if (files.length) {
+        const uploaded = await uploadAttachments(familyId, files);
+        if (!uploaded) {
+          setHasText(Boolean(text.trim()));
+          return { formError: errors.uploadFailed, values: { body: text } };
+        }
+        appendAttachments(formData, uploaded);
+      }
       const result = await sendMessage(previous, formData);
+      if (result.sentAt) picker.clear();
       setHasText(Boolean(result.values?.body));
       return result;
     },
@@ -167,8 +195,9 @@ function Composer({
         defaultValue={state.values?.body}
         error={state.fieldErrors?.body}
         pending={pending}
-        canSend={hasText}
+        canSend={hasText || picker.files.length > 0}
         onTextChange={setHasText}
+        picker={picker}
       />
     </form>
   );
@@ -198,12 +227,24 @@ export function ChatPanel({
     conversation.messages as ShownMessage[],
     (list, message: ShownMessage) => [...list, message],
   );
-  const showSending = (body: string) =>
+  const showSending = (body: string, files: File[]) =>
     addSending({
       id: `sending:${crypto.randomUUID()}`,
       sender: "me",
       body,
       createdAt: new Date().toISOString(),
+      attachments: files.map((file, index) => {
+        const mimeType = fileType(file) ?? "";
+        return {
+          id: `sending:${index}`,
+          name: file.name,
+          mimeType,
+          sizeBytes: file.size,
+          kind: attachmentKind(mimeType),
+          url: null,
+          downloadUrl: null,
+        };
+      }),
       sending: true,
     });
   const latestId = shown.at(-1)?.id;
@@ -283,7 +324,11 @@ export function ChatPanel({
         ))}
       </div>
 
-      <Composer conversationId={conversation.id} onSend={showSending} />
+      <Composer
+        conversationId={conversation.id}
+        familyId={conversation.familyId}
+        onSend={showSending}
+      />
     </div>
   );
 }

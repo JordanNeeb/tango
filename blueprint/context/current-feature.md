@@ -84,7 +84,7 @@ each time. `/complete` makes the feature commit.
 
 ## Build steps
 
-- [ ] **1. Attachment rules in shared logic.** Add
+- [x] **1. Attachment rules in shared logic.** Add
   `apps/web/src/lib/attachments.ts` with the allowed MIME list, `MAX_FILES = 10`,
   `MAX_BYTES = 50 * 1024 * 1024`, and these helpers:
   - `attachmentKind(mime)`: `image | video | pdf | download`, where HEIC/HEIF
@@ -150,7 +150,7 @@ each time. `/complete` makes the feature commit.
     `invalid_attachments`
   - `npm run typecheck` passes
 
-- [ ] **3. Server actions and data loading.**
+- [x] **3. Server actions and data loading.**
   - **Actions.** `startConversation` and `sendMessage` read attachments with
     `parseAttachmentPaths` plus their names. They accept an empty body when
     attachments exist, pass `attachments` to the RPCs, and map

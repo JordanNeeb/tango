@@ -12,6 +12,7 @@ import { useMessages } from "@/lib/i18n/language-provider";
 
 import { ComposerField } from "./composer-field";
 import { type Contact } from "./types";
+import { appendAttachments, uploadAttachments, useAttachmentPicker } from "./use-attachments";
 
 // The dashboard header search's field style, so the overlay below can share it.
 const fieldText = "py-2 text-base sm:text-sm/6";
@@ -74,7 +75,7 @@ function RecipientField({
 
 // A new conversation laid out like an open one: To and Subject in the header,
 // an empty message area, and the composer. Send waits for a recipient (a
-// contact's exact name, ignoring case), a subject, and a message. The
+// contact's exact name, ignoring case), a subject, and a message or file. The
 // recipient posts its family, which `start_conversation` checks the parent
 // belongs to. React resets the form after each submission; To and Subject are
 // state, and the message comes back from the result after an error.
@@ -84,8 +85,20 @@ export function NewConversationForm({ contacts }: { contacts: Contact[] }) {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [hasText, setHasText] = useState(false);
+  const picker = useAttachmentPicker();
   const [state, formAction, pending] = useActionState<ConversationActionResult, FormData>(
     async (previous, formData) => {
+      // Files go straight to the recipient family's storage folder first; the
+      // action gets their paths. A successful start opens the conversation.
+      if (picker.files.length) {
+        const uploaded = await uploadAttachments(String(formData.get("familyId") ?? ""), picker.files);
+        if (!uploaded) {
+          const body = String(formData.get("body") ?? "");
+          setHasText(Boolean(body.trim()));
+          return { formError: messages.errors.uploadFailed, values: { body } };
+        }
+        appendAttachments(formData, uploaded);
+      }
       const result = await startConversation(previous, formData);
       setHasText(Boolean(result.values?.body));
       return result;
@@ -98,7 +111,8 @@ export function NewConversationForm({ contacts }: { contacts: Contact[] }) {
     (contact) => contact.name.toLowerCase() === to.trim().toLowerCase(),
   );
   const subjectError = state.fieldErrors?.subject;
-  const canSend = recipient !== undefined && subject.trim() !== "" && hasText;
+  const canSend =
+    recipient !== undefined && subject.trim() !== "" && (hasText || picker.files.length > 0);
 
   return (
     <form ref={formRef} action={formAction} noValidate className="flex h-full flex-col">
@@ -152,6 +166,7 @@ export function NewConversationForm({ contacts }: { contacts: Contact[] }) {
           pending={pending}
           canSend={canSend}
           onTextChange={setHasText}
+          picker={picker}
         />
       </div>
     </form>

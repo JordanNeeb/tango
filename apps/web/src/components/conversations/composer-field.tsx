@@ -1,32 +1,103 @@
 "use client";
 
-import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
-import { useId } from "react";
+import { PaperAirplaneIcon, PaperClipIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useId, useRef } from "react";
 
 import { errorTextClass } from "@/components/auth/styles";
-import { useMessages } from "@/lib/i18n/language-provider";
+import { ACCEPT, formatBytes, type PickError } from "@/lib/attachments";
+import { useLanguage, useMessages } from "@/lib/i18n/language-provider";
 
-// The message textarea and round send button at the bottom of a chat, shared
-// by an open conversation and the new message screen. The form around it
-// decides when sending is allowed.
+import { type useAttachmentPicker } from "./use-attachments";
+
+// The message textarea, paperclip, and round send button at the bottom of a
+// chat, shared by an open conversation and the new message screen. Picked
+// files show as chips above the box. The form around it decides when sending
+// is allowed and uploads the files.
 export function ComposerField({
   defaultValue,
   error,
   pending,
   canSend,
   onTextChange,
+  picker,
 }: {
   defaultValue?: string;
   error?: string;
   pending: boolean;
   canSend: boolean;
   onTextChange: (hasText: boolean) => void;
+  picker: ReturnType<typeof useAttachmentPicker>;
 }) {
   const messages = useMessages().conversations;
+  const language = useLanguage();
   const id = useId();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const pickMessage = (problem: PickError) =>
+    problem.reason === "count"
+      ? messages.errors.fileCount
+      : (problem.reason === "type" ? messages.errors.fileType : messages.errors.fileSize).replace(
+          "{name}",
+          () => problem.name,
+        );
+  const described = [error ? `${id}-error` : "", picker.errors.length ? `${id}-files-error` : ""]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <>
+      {picker.files.length ? (
+        <ul role="list" aria-label={messages.attachments.label} className="mb-3 flex flex-wrap gap-2">
+          {picker.files.map((file, index) => (
+            <li
+              key={`${index}:${file.name}:${file.size}`}
+              className="flex max-w-full min-w-0 items-center gap-x-2 rounded-full bg-gray-100 py-1 pr-1 pl-3 text-sm text-gray-700 dark:bg-white/10 dark:text-gray-200"
+            >
+              <span className="truncate">{file.name}</span>
+              <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+                {formatBytes(file.size, language)}
+              </span>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => picker.remove(index)}
+                className="flex size-6 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+              >
+                <span className="sr-only">
+                  {messages.attachments.remove.replace("{name}", () => file.name)}
+                </span>
+                <XMarkIcon aria-hidden="true" className="size-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       <div className="flex items-end gap-x-3">
+        {/* Not named, so the form never posts the files themselves; the form
+            uploads them and posts their storage paths. */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept={ACCEPT}
+          tabIndex={-1}
+          aria-hidden="true"
+          className="hidden"
+          onChange={(event) => {
+            picker.add(Array.from(event.target.files ?? []));
+            // Lets the same file be picked again after it's removed.
+            event.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => fileInputRef.current?.click()}
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+        >
+          <span className="sr-only">{messages.attachments.attach}</span>
+          <PaperClipIcon aria-hidden="true" className="size-6" />
+        </button>
         <label htmlFor={id} className="sr-only">
           {messages.composerLabel}
         </label>
@@ -50,7 +121,7 @@ export function ComposerField({
               if (canSend && !pending) event.currentTarget.form?.requestSubmit();
             }}
             aria-invalid={error ? true : undefined}
-            aria-describedby={error ? `${id}-error` : undefined}
+            aria-describedby={described || undefined}
             className="block max-h-[4lh] min-h-6 w-full resize-none field-sizing-content overflow-y-auto bg-transparent p-0 text-base/6 text-gray-900 outline-hidden placeholder:text-gray-400 sm:text-sm/6 dark:text-white dark:placeholder:text-gray-500"
           />
         </div>
@@ -59,7 +130,13 @@ export function ComposerField({
           disabled={pending || !canSend}
           className="flex size-11 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500 dark:disabled:hover:bg-indigo-500"
         >
-          <span className="sr-only">{pending ? messages.sending : messages.send}</span>
+          <span className="sr-only">
+            {pending
+              ? picker.files.length
+                ? messages.attachments.uploading
+                : messages.sending
+              : messages.send}
+          </span>
           <PaperAirplaneIcon aria-hidden="true" className="size-5" />
         </button>
       </div>
@@ -68,6 +145,13 @@ export function ComposerField({
           {error}
         </p>
       ) : null}
+      <div id={`${id}-files-error`} aria-live="polite">
+        {picker.errors.map((problem) => (
+          <p key={problem.reason === "count" ? "count" : `${problem.reason}:${problem.name}`} className={errorTextClass}>
+            {pickMessage(problem)}
+          </p>
+        ))}
+      </div>
     </>
   );
 }

@@ -28,18 +28,25 @@ export function fakeQuery(result: Result) {
 }
 
 // A client whose `from(table)` hands out the queued queries for that table in
-// order, and whose `rpc(name)` answers from `rpcs`.
+// order, whose `rpc(name)` answers from `rpcs`, and whose storage signs links
+// with `signedUrls`.
 export function fakeSupabase({
   tables = {},
   rpcs = {},
   userId = null,
+  signedUrls = { data: [] },
 }: {
   tables?: Record<string, Result[]>;
   rpcs?: Record<string, Result>;
   userId?: string | null;
+  signedUrls?: Result;
 } = {}) {
   const queues = Object.fromEntries(Object.entries(tables).map(([t, r]) => [t, [...r]]));
   const queries: Record<string, ReturnType<typeof fakeQuery>[]> = {};
+  const createSignedUrls = vi.fn(async (_paths: string[], _expiresIn: number) => ({
+    data: signedUrls.data ?? null,
+    error: signedUrls.error ?? null,
+  }));
   const client = {
     from: vi.fn((table: string) => {
       const next = queues[table]?.shift();
@@ -56,6 +63,8 @@ export function fakeSupabase({
     auth: {
       getClaims: vi.fn(async () => ({ data: userId ? { claims: { sub: userId } } : null })),
     },
+    storage: { from: vi.fn((_bucket: string) => ({ createSignedUrls })) },
+    createSignedUrls,
     queries,
   };
   return client;

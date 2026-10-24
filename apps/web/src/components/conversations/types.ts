@@ -1,3 +1,5 @@
+import { type AttachmentKind } from "@/lib/attachments";
+
 // Messages are shown from the viewer's side: their own, or the co-parent's.
 export type Sender = "me" | "coParent";
 
@@ -7,11 +9,26 @@ export type MessageStatus = "delivered" | "received" | "previewed" | "read";
 
 export const MESSAGE_STATUSES: MessageStatus[] = ["delivered", "received", "previewed", "read"];
 
+// A file on a message, with signed links that expire after an hour. The links
+// are null while it's still sending, or when one couldn't be signed.
+export type ConversationAttachment = {
+  id: string;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  kind: AttachmentKind;
+  url: string | null;
+  downloadUrl: string | null;
+};
+
 export type ConversationMessage = {
   id: string;
   sender: Sender;
+  // Empty when the message is only attachments.
   body: string;
   createdAt: string;
+  // In upload order.
+  attachments: ConversationAttachment[];
 };
 
 export type ConversationSummary = {
@@ -20,11 +37,13 @@ export type ConversationSummary = {
   startedBy: Sender;
   // Has a message from the co-parent this parent hasn't read.
   unread: boolean;
-  latest: ConversationMessage | null;
+  latest: (Omit<ConversationMessage, "attachments"> & { attachmentCount: number }) | null;
 };
 
 export type ConversationDetail = {
   id: string;
+  // Where its attachments are uploaded.
+  familyId: string;
   subject: string;
   startedBy: Sender;
   // Oldest first.

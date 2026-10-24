@@ -107,7 +107,7 @@ export function ConversationList({
                         ) : (
                           <span className="sr-only">{names[latest.sender]}: </span>
                         )}
-                        {latest.body}
+                        {latest.body || (latest.attachmentCount ? messages.attachments.preview : "")}
                       </p>
                     ) : null}
                   </div>

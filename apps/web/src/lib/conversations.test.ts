@@ -24,6 +24,10 @@ describe("cleanBody", () => {
     expect(cleanBody("\n\t Hi,\n\nSee you Friday. \r\n")).toBe("Hi,\n\nSee you Friday.");
   });
 
+  it("empties a body with no visible text", () => {
+    expect(cleanBody(" \u00a0\n\u3000 ")).toBe("");
+  });
+
   it("keeps a non-breaking space at the ends, as the database does", () => {
     expect(cleanBody(" hi ")).toBe(" hi ");
   });

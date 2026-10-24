@@ -189,6 +189,54 @@ export type Database = {
           },
         ]
       }
+      message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          message_id: string
+          mime_type: string
+          position: number
+          size_bytes: number
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          message_id: string
+          mime_type: string
+          position: number
+          size_bytes: number
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          message_id?: string
+          mime_type?: string
+          position?: number
+          size_bytes?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_previews"
+            referencedColumns: ["latest_message_id"]
+          },
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_receipts: {
         Row: {
           created_at: string
@@ -358,6 +406,7 @@ export type Database = {
           created_at: string | null
           family_id: string | null
           id: string | null
+          latest_attachment_count: number | null
           latest_body: string | null
           latest_created_at: string | null
           latest_message_id: string | null
@@ -413,12 +462,17 @@ export type Database = {
         Returns: undefined
       }
       send_message: {
-        Args: { message_body: string; target_conversation_id: string }
+        Args: {
+          attachments?: Json
+          message_body: string
+          target_conversation_id: string
+        }
         Returns: string
       }
       set_account_type: { Args: { requested: string }; Returns: undefined }
       start_conversation: {
         Args: {
+          attachments?: Json
           conversation_subject: string
           message_body: string
           target_family_id: string

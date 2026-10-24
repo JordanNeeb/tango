@@ -21,9 +21,12 @@ export function cleanSubject(raw: string): string {
   return raw.trim();
 }
 
-// Inner newlines are kept; only the ends are trimmed, as in the database.
+// Inner newlines are kept; only the ends are trimmed, as in the database. A
+// body with no visible text becomes empty, which an attachment-only message
+// allows.
 export function cleanBody(raw: string): string {
-  return raw.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, "");
+  const body = raw.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, "");
+  return body.trim() ? body : "";
 }
 
 // Counts characters as Postgres's char_length does (code points, not UTF-16 units).
@@ -39,8 +42,13 @@ export function validateSubject(subject: string, errors: ConversationErrors): st
 
 // trim() also removes Unicode whitespace such as the non-breaking space, so a
 // body made only of those is blank too (the database's has_visible_text agrees).
-export function validateBody(body: string, errors: ConversationErrors): string | undefined {
-  if (!body.trim()) return errors.bodyRequired;
+// A blank body is allowed only when the message has attachments.
+export function validateBody(
+  body: string,
+  errors: ConversationErrors,
+  hasAttachments = false,
+): string | undefined {
+  if (!body.trim()) return hasAttachments ? undefined : errors.bodyRequired;
   if (charLength(body) > BODY_MAX) return errors.bodyTooLong;
   return undefined;
 }

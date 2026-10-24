@@ -4,6 +4,7 @@ import { type Messages } from "@tango/shared";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { parseAttachments } from "@/lib/attachments";
 import { readText } from "@/lib/auth/validation";
 import {
   cleanBody,
@@ -34,6 +35,8 @@ function failure(
       return { fieldErrors: { subject: errors.subjectRequired }, values };
     case "invalid_body":
       return { fieldErrors: { body: errors.bodyRequired }, values };
+    case "invalid_attachments":
+      return { formError: errors.attachFailed, values };
     case "not_member":
       return { formError: errors.unavailable, values };
     default:
@@ -49,6 +52,8 @@ async function signedInClient() {
   return supabase;
 }
 
+// The browser has already uploaded the files; the form posts their storage
+// paths and names, which the database checks against storage.
 export async function startConversation(
   _previous: ConversationActionResult,
   formData: FormData,
@@ -58,10 +63,12 @@ export async function startConversation(
   const familyId = readText(formData, "familyId");
   const subject = cleanSubject(readText(formData, "subject"));
   const body = cleanBody(readText(formData, "body"));
+  const attachments = parseAttachments(formData);
   const values = { subject, body };
 
+  if (attachments === null) return failure("start", "invalid_attachments", messages, values);
   const subjectError = validateSubject(subject, errors);
-  const bodyError = validateBody(body, errors);
+  const bodyError = validateBody(body, errors, attachments.length > 0);
   if (subjectError || bodyError) {
     return { fieldErrors: { subject: subjectError, body: bodyError }, values };
   }
@@ -72,6 +79,7 @@ export async function startConversation(
     target_family_id: familyId,
     conversation_subject: subject,
     message_body: body,
+    attachments,
   });
   if (error || !conversationId) return failure("start", error?.message, messages, values);
 
@@ -86,9 +94,11 @@ export async function sendMessage(
   const messages = await requestMessages();
   const conversationId = readText(formData, "conversationId");
   const body = cleanBody(readText(formData, "body"));
+  const attachments = parseAttachments(formData);
   const values = { body };
 
-  const bodyError = validateBody(body, messages.conversations.errors);
+  if (attachments === null) return failure("send", "invalid_attachments", messages, values);
+  const bodyError = validateBody(body, messages.conversations.errors, attachments.length > 0);
   if (bodyError) return { fieldErrors: { body: bodyError }, values };
   if (!UUID.test(conversationId)) return failure("send", "not_member", messages, values);
 
@@ -96,6 +106,7 @@ export async function sendMessage(
   const { error } = await supabase.rpc("send_message", {
     target_conversation_id: conversationId,
     message_body: body,
+    attachments,
   });
   if (error) return failure("send", error.message, messages, values);
 

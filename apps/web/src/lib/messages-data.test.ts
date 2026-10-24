@@ -26,6 +26,7 @@ function preview(id: string, overrides: Record<string, unknown> = {}) {
     latest_sender_id: THEM,
     latest_body: "Hello",
     latest_created_at: "2026-10-24T12:00:00Z",
+    latest_attachment_count: 0,
     ...overrides,
   };
 }
@@ -44,7 +45,7 @@ describe("loadConversations", () => {
           {
             data: [
               preview("c1"),
-              preview("c2", { started_by: THEM, latest_sender_id: ME }),
+              preview("c2", { started_by: THEM, latest_sender_id: ME, latest_body: "", latest_attachment_count: 2 }),
               preview("c3", { latest_message_id: null, latest_body: null, latest_created_at: null }),
               preview("c4", { subject: null }),
             ],
@@ -64,14 +65,26 @@ describe("loadConversations", () => {
           subject: "Subject c1",
           startedBy: "me",
           unread: true,
-          latest: { id: "m-c1", sender: "coParent", body: "Hello", createdAt: "2026-10-24T12:00:00Z" },
+          latest: {
+            id: "m-c1",
+            sender: "coParent",
+            body: "Hello",
+            createdAt: "2026-10-24T12:00:00Z",
+            attachmentCount: 0,
+          },
         },
         {
           id: "c2",
           subject: "Subject c2",
           startedBy: "coParent",
           unread: false,
-          latest: { id: "m-c2", sender: "me", body: "Hello", createdAt: "2026-10-24T12:00:00Z" },
+          latest: {
+            id: "m-c2",
+            sender: "me",
+            body: "",
+            createdAt: "2026-10-24T12:00:00Z",
+            attachmentCount: 2,
+          },
         },
         { id: "c3", subject: "Subject c3", startedBy: "me", unread: false, latest: null },
       ],
@@ -158,6 +171,7 @@ describe("loadConversation", () => {
   const conversation = {
     data: { id: CONVERSATION_ID, family_id: "f1", subject: "Pickup", started_by: THEM },
   };
+  const noAttachments = { data: [] };
 
   it("returns not-found for a malformed id without querying", async () => {
     const supabase = fakeSupabase();
@@ -195,21 +209,24 @@ describe("loadConversation", () => {
             ],
           },
         ],
+        message_attachments: [noAttachments],
       },
     });
 
     expect(await loadConversation(client(supabase), ME, "f1", CONVERSATION_ID)).toEqual({
       id: CONVERSATION_ID,
+      familyId: "f1",
       subject: "Pickup",
       startedBy: "coParent",
       messages: [
-        { id: "m1", sender: "me", body: "First", createdAt: "t1" },
-        { id: "m2", sender: "me", body: "Second", createdAt: "t2" },
-        { id: "m3", sender: "coParent", body: "Reply", createdAt: "t3" },
+        { id: "m1", sender: "me", body: "First", createdAt: "t1", attachments: [] },
+        { id: "m2", sender: "me", body: "Second", createdAt: "t2", attachments: [] },
+        { id: "m3", sender: "coParent", body: "Reply", createdAt: "t3", attachments: [] },
       ],
       latestSent: { id: "m2", status: { delivered: "d", read: "r" } },
     });
     expect(supabase.queries.message_receipts[0].calls).toContainEqual(["eq", ["message_id", "m2"]]);
+    expect(supabase.createSignedUrls).not.toHaveBeenCalled();
   });
 
   it("has no latest sent message until the parent sends one", async () => {
@@ -217,11 +234,107 @@ describe("loadConversation", () => {
       tables: {
         conversations: [conversation],
         messages: [{ data: [{ id: "m1", sender_id: THEM, body: "Hi", created_at: "t1" }] }],
+        message_attachments: [noAttachments],
       },
     });
     const result = await loadConversation(client(supabase), ME, "f1", CONVERSATION_ID);
     expect(result).toMatchObject({ latestSent: null });
     expect(supabase.from).not.toHaveBeenCalledWith("message_receipts");
+  });
+
+  describe("attachments", () => {
+    const photo = {
+      id: "a1",
+      message_id: "m1",
+      storage_path: "f1/p1",
+      file_name: "park photo.jpg",
+      mime_type: "image/jpeg",
+      size_bytes: 2048,
+      position: 0,
+    };
+    const doc = {
+      id: "a2",
+      message_id: "m1",
+      storage_path: "f1/p2",
+      file_name: "schedule.docx",
+      mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      size_bytes: 4096,
+      position: 1,
+    };
+    const tables = (attachments: unknown) => ({
+      conversations: [conversation],
+      messages: [{ data: [{ id: "m1", sender_id: THEM, body: "", created_at: "t1" }] }],
+      message_attachments: [attachments as { data: unknown }],
+    });
+
+    it("adds each message's files in order with signed links", async () => {
+      const supabase = fakeSupabase({
+        tables: tables({ data: [photo, doc] }),
+        signedUrls: {
+          data: [
+            { path: "f1/p1", signedUrl: "https://s/p1?token=1", error: null },
+            { path: "f1/p2", signedUrl: "https://s/p2?token=2", error: null },
+          ],
+        },
+      });
+      const result = await loadConversation(client(supabase), ME, "f1", CONVERSATION_ID);
+
+      expect(result).toMatchObject({
+        messages: [
+          {
+            id: "m1",
+            body: "",
+            attachments: [
+              {
+                id: "a1",
+                name: "park photo.jpg",
+                mimeType: "image/jpeg",
+                sizeBytes: 2048,
+                kind: "image",
+                url: "https://s/p1?token=1",
+                downloadUrl: "https://s/p1?token=1&download=park%20photo.jpg",
+              },
+              {
+                id: "a2",
+                name: "schedule.docx",
+                kind: "download",
+                url: "https://s/p2?token=2",
+                downloadUrl: "https://s/p2?token=2&download=schedule.docx",
+              },
+            ],
+          },
+        ],
+      });
+      expect(supabase.storage.from).toHaveBeenCalledWith("attachments");
+      expect(supabase.createSignedUrls).toHaveBeenCalledWith(["f1/p1", "f1/p2"], 3600);
+      const calls = supabase.queries.message_attachments[0].calls;
+      expect(calls).toContainEqual(["eq", ["messages.conversation_id", CONVERSATION_ID]]);
+      expect(calls).toContainEqual(["order", ["position", { ascending: true }]]);
+    });
+
+    it("keeps a file whose link couldn't be signed, without links", async () => {
+      const supabase = fakeSupabase({
+        tables: tables({ data: [photo, doc] }),
+        signedUrls: {
+          data: [
+            { path: "f1/p1", signedUrl: "https://s/p1?token=1", error: null },
+            { path: "f1/p2", signedUrl: "", error: "Object not found" },
+          ],
+        },
+      });
+      const result = await loadConversation(client(supabase), ME, "f1", CONVERSATION_ID);
+      expect(result).toMatchObject({
+        messages: [{ attachments: [{ id: "a1" }, { id: "a2", url: null, downloadUrl: null }] }],
+      });
+    });
+
+    it("returns error when signing fails", async () => {
+      const supabase = fakeSupabase({
+        tables: tables({ data: [photo] }),
+        signedUrls: { error: { message: "storage down" } },
+      });
+      expect(await loadConversation(client(supabase), ME, "f1", CONVERSATION_ID)).toBe("error");
+    });
   });
 
   it.each([
@@ -233,6 +346,14 @@ describe("loadConversation", () => {
         conversations: [conversation],
         messages: [{ data: [{ id: "m1", sender_id: ME, body: "Hi", created_at: "t1" }] }],
         message_receipts: [{ error: failure }],
+      },
+    ],
+    [
+      "the attachments",
+      {
+        conversations: [conversation],
+        messages: [{ data: [{ id: "m1", sender_id: THEM, body: "Hi", created_at: "t1" }] }],
+        message_attachments: [{ error: failure }],
       },
     ],
   ])("returns error when reading %s fails", async (_name, tables) => {
