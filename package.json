@@ -12,6 +12,11 @@
     "start:mobile": "npm run start -w @tango/mobile",
     "ios": "npm run ios -w @tango/mobile",
     "android": "npm run android -w @tango/mobile",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.5"
   }
 }

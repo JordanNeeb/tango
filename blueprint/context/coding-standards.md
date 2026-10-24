@@ -239,7 +239,10 @@ Stack binding: mobile uses Jest with the `jest-expo` preset (Expo's supported se
 `jest.mock()` for native modules and external services, and
 `jest.useFakeTimers()` for time-dependent logic. Use React Native Testing Library
 only if component tests are later added deliberately. Web and `packages/shared`
-runners are chosen when `/tests` runs (TODO).
+use Vitest from the repo root (`npm test`), in the Node environment. Server
+actions, route handlers, and data loaders are tested with the fakes in `test/`
+(`fakeSupabase`, and stand-ins for `next/headers`, `next/navigation`, and
+`next/cache`) rather than a live database.
 
 ## Device and Browser Verification
 

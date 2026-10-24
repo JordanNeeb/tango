@@ -399,9 +399,14 @@ Backend (`supabase/`):
   needs explicit approval each time)
 - Compare local and remote migrations: `npx supabase@latest migration list`
 
-No test command is configured, so tests are not yet a gate. Run `/tests` or
-`$tests` to add a unit test runner and update this section with the real test
-commands.
+Tests (Vitest, `apps/web` and `packages/shared`; config in `vitest.config.mts`):
+
+- Test: `npm test`
+- Watch: `npm run test:watch`
+- Test files sit next to the code they cover (`*.test.ts`). Shared fakes for
+  the Supabase client and Next request APIs live in `test/`.
+- `apps/mobile` has no unit tests yet; it will use Jest with `jest-expo` when it
+  gains logic worth testing.
 
 End-to-end testing is also opt-in. Run `/tests browser` or `$tests browser` to
 add or normalize a harness (Maestro for native flows, Playwright for the web
