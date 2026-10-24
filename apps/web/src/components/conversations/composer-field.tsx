@@ -30,26 +30,30 @@ export function ComposerField({
         <label htmlFor={id} className="sr-only">
           {messages.composerLabel}
         </label>
-        {/* Grows with its text (field-sizing) up to 4 lines plus padding, then scrolls. */}
-        <textarea
-          id={id}
-          name="body"
-          rows={1}
-          placeholder={messages.composerPlaceholder}
-          defaultValue={defaultValue}
-          readOnly={pending}
-          onChange={(event) => onTextChange(event.target.value.trim() !== "")}
-          onKeyDown={(event) => {
-            // Enter sends and Shift+Enter breaks the line. Enter that ends an
-            // IME composition (accents, CJK input) is left to the IME.
-            if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
-            event.preventDefault();
-            if (canSend && !pending) event.currentTarget.form?.requestSubmit();
-          }}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${id}-error` : undefined}
-          className="block max-h-[calc(4lh+1.25rem)] min-h-11 flex-1 resize-none field-sizing-content overflow-y-auto rounded-3xl bg-white px-4 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 aria-invalid:outline-red-500 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500 dark:aria-invalid:outline-red-400"
-        />
+        {/* The box and its padding wrap the textarea, so scrolling text always
+            keeps padding below it. The textarea grows with its text
+            (field-sizing) up to 4 lines, then scrolls. */}
+        <div className="min-w-0 flex-1 rounded-3xl bg-white px-4 py-2.5 outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600 has-[[aria-invalid=true]]:outline-red-500 dark:bg-white/5 dark:outline-white/10 dark:focus-within:outline-indigo-500 dark:has-[[aria-invalid=true]]:outline-red-400">
+          <textarea
+            id={id}
+            name="body"
+            rows={1}
+            placeholder={messages.composerPlaceholder}
+            defaultValue={defaultValue}
+            readOnly={pending}
+            onChange={(event) => onTextChange(event.target.value.trim() !== "")}
+            onKeyDown={(event) => {
+              // Enter sends and Shift+Enter breaks the line. Enter that ends an
+              // IME composition (accents, CJK input) is left to the IME.
+              if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+              event.preventDefault();
+              if (canSend && !pending) event.currentTarget.form?.requestSubmit();
+            }}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${id}-error` : undefined}
+            className="block max-h-[4lh] min-h-6 w-full resize-none field-sizing-content overflow-y-auto bg-transparent p-0 text-base/6 text-gray-900 outline-hidden placeholder:text-gray-400 sm:text-sm/6 dark:text-white dark:placeholder:text-gray-500"
+          />
+        </div>
         <button
           type="submit"
           disabled={pending || !canSend}
