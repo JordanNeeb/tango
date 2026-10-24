@@ -21,7 +21,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { signOut } from "@/app/[lang]/(auth)/actions";
 import { Logo } from "@/components/common/logo";
@@ -231,6 +231,15 @@ export function DashboardShell({
   const drawerOnly = columns ? "rail:hidden" : "lg:hidden";
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // In the multi-column layout only the columns scroll. The page itself must
+  // not, or reaching the end of a column scrolls the header away.
+  useEffect(() => {
+    if (!columns) return;
+    const root = document.documentElement;
+    root.classList.add("overflow-hidden");
+    return () => root.classList.remove("overflow-hidden");
+  }, [columns]);
+
   return (
     <div className="min-h-full bg-white dark:bg-gray-900">
       {/* Sign out lives outside the menu, which unmounts its items when closed. */}
@@ -286,7 +295,7 @@ export function DashboardShell({
         </div>
       )}
 
-      <div className={columns ? "rail:pl-20" : "lg:pl-72"}>
+      <div className={columns ? "flex h-dvh flex-col rail:pl-20" : "lg:pl-72"}>
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-xs dark:border-white/10 dark:bg-gray-900 sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
@@ -383,7 +392,7 @@ export function DashboardShell({
           </div>
         </div>
 
-        <main className={columns ? "split:pl-96" : "py-10"}>
+        <main className={columns ? "min-h-0 flex-1 overflow-hidden split:pl-96" : "py-10"}>
           <h1 className="sr-only">{title ?? dashboard.title}</h1>
           {columns ? (
             children
@@ -394,7 +403,7 @@ export function DashboardShell({
       </div>
 
       {columns ? (
-        <aside className="fixed top-16 bottom-0 left-20 hidden w-96 overflow-y-auto border-r border-gray-200 split:block dark:border-white/10">
+        <aside className="fixed top-16 bottom-0 left-20 hidden w-96 overflow-y-auto overscroll-contain border-r border-gray-200 split:block dark:border-white/10">
           {aside}
         </aside>
       ) : null}

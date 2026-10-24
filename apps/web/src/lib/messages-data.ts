@@ -3,7 +3,7 @@ import "server-only";
 import {
   type ConversationDetail,
   type ConversationSummary,
-  type FamilyMessages,
+  type FamilyConversations,
   MESSAGE_STATUSES,
   type MessageStatus,
   type Sender,
@@ -16,55 +16,28 @@ type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 type Failure = { code?: string; message: string };
 
+// About 3.7 KB of uuids per request URL.
+const UNREAD_BATCH = 100;
+
 function logFailure(what: string, error: Failure) {
   console.error(`[messages] ${what} load failed`, { code: error.code, message: error.message });
 }
 
-// Loads a paired parent's conversations, and the selected one when an id is
-// given. The family is the selected conversation's, or the parent's
-// earliest-joined one. Returns null when they have no family, "not-found" for
-// a conversation they can't read, and "error" when a read fails.
-export async function loadFamilyMessages(
+// Loads a paired parent's conversation list for the messages layout: their
+// earliest-joined family's conversations, newest activity first, each marked
+// when it holds a co-parent message they haven't read, and the co-parent's
+// name. Returns null when they have no family and "error" when a read fails.
+export async function loadConversations(
   supabase: Supabase,
   userId: string,
-  conversationId?: string,
-): Promise<FamilyMessages | null | "not-found" | "error"> {
-  let conversation: {
-    id: string;
-    family_id: string;
-    subject: string;
-    started_by: string;
-  } | null = null;
-
-  if (conversationId !== undefined) {
-    const { data, error } = UUID.test(conversationId)
-      ? await supabase
-          .from("conversations")
-          .select("id, family_id, subject, started_by")
-          .eq("id", conversationId)
-          .maybeSingle()
-      : { data: null, error: null };
-    if (error) {
-      logFailure("conversation", error);
-      return "error";
-    }
-    if (!data) {
-      // A parent without a family is sent to the add-a-co-parent prompt rather
-      // than the not-found page.
-      const familyId = await loadFamilyId(supabase, userId);
-      if (familyId === "error") return "error";
-      return familyId === null ? null : "not-found";
-    }
-    conversation = data;
-  }
-
-  const familyId = conversation?.family_id ?? (await loadFamilyId(supabase, userId));
+): Promise<FamilyConversations | null | "error"> {
+  const familyId = await loadFamilyId(supabase, userId);
   if (familyId === "error") return "error";
   if (familyId === null) return null;
 
   const sender = (id: string | null): Sender => (id === userId ? "me" : "coParent");
 
-  const [coParent, previews] = await Promise.all([
+  const [coParent, previews, unread] = await Promise.all([
     supabase
       .from("family_members")
       .select("profiles(name)")
@@ -77,6 +50,7 @@ export async function loadFamilyMessages(
       .eq("family_id", familyId)
       .order("latest_created_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false }),
+    supabase.rpc("unread_messages", { target_family_id: familyId }),
   ]);
   if (coParent.error) {
     logFailure("co-parent", coParent.error);
@@ -86,6 +60,30 @@ export async function loadFamilyMessages(
     logFailure("conversations", previews.error);
     return "error";
   }
+  if (unread.error) {
+    logFailure("unread", unread.error);
+    return "error";
+  }
+
+  // The conversations holding the co-parent's messages this parent hasn't read.
+  // The ids go in the request URL, so they're looked up in batches small
+  // enough for the gateway (500 ids is past its URL length limit).
+  const unreadConversations = new Set<string>();
+  const unreadIds = unread.data.map((row) => row.id);
+  const batches: string[][] = [];
+  for (let start = 0; start < unreadIds.length; start += UNREAD_BATCH) {
+    batches.push(unreadIds.slice(start, start + UNREAD_BATCH));
+  }
+  const lookups = await Promise.all(
+    batches.map((ids) => supabase.from("messages").select("conversation_id").in("id", ids)),
+  );
+  for (const { data: unreadRows, error: unreadRowsError } of lookups) {
+    if (unreadRowsError) {
+      logFailure("unread conversations", unreadRowsError);
+      return "error";
+    }
+    for (const row of unreadRows) unreadConversations.add(row.conversation_id);
+  }
 
   const conversations: ConversationSummary[] = previews.data.flatMap((row) =>
     row.id && row.subject
@@ -94,6 +92,7 @@ export async function loadFamilyMessages(
             id: row.id,
             subject: row.subject,
             startedBy: sender(row.started_by),
+            unread: unreadConversations.has(row.id),
             latest:
               row.latest_message_id && row.latest_body !== null && row.latest_created_at
                 ? {
@@ -108,13 +107,37 @@ export async function loadFamilyMessages(
       : [],
   );
 
-  const result: FamilyMessages = {
+  return {
     familyId,
     coParentName: coParent.data[0]?.profiles?.name?.trim() || null,
     conversations,
-    selected: null,
   };
-  if (!conversation) return result;
+}
+
+// Loads one conversation in the listed family: its messages oldest first and
+// the co-parent's statuses for the parent's own latest message. Returns
+// "not-found" for a malformed id or a conversation outside that family (RLS
+// hides other families'), and "error" when a read fails.
+export async function loadConversation(
+  supabase: Supabase,
+  userId: string,
+  familyId: string,
+  conversationId: string,
+): Promise<ConversationDetail | "not-found" | "error"> {
+  if (!UUID.test(conversationId)) return "not-found";
+
+  const { data: conversation, error } = await supabase
+    .from("conversations")
+    .select("id, family_id, subject, started_by")
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (error) {
+    logFailure("conversation", error);
+    return "error";
+  }
+  if (!conversation || conversation.family_id !== familyId) return "not-found";
+
+  const sender = (id: string | null): Sender => (id === userId ? "me" : "coParent");
 
   const { data: messages, error: messagesError } = await supabase
     .from("messages")
@@ -146,7 +169,7 @@ export async function loadFamilyMessages(
     latestSent = { id: mine.id, status };
   }
 
-  result.selected = {
+  return {
     id: conversation.id,
     subject: conversation.subject,
     startedBy: sender(conversation.started_by),
@@ -158,5 +181,4 @@ export async function loadFamilyMessages(
     })),
     latestSent,
   };
-  return result;
 }

@@ -16,6 +16,10 @@ import {
 import { requestMessages } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
+// The messages layout and every page under it: the list in the layout shows
+// each conversation's latest message, so a send or a new conversation changes it.
+const MESSAGES_LAYOUT = "/[lang]/(app)/messages";
+
 // Database functions raise a stable code as the message. Message text is never
 // logged.
 function failure(
@@ -71,7 +75,7 @@ export async function startConversation(
   });
   if (error || !conversationId) return failure("start", error?.message, messages, values);
 
-  revalidatePath("/messages");
+  revalidatePath(MESSAGES_LAYOUT, "layout");
   redirect(`/messages/${conversationId}`);
 }
 
@@ -95,6 +99,6 @@ export async function sendMessage(
   });
   if (error) return failure("send", error.message, messages, values);
 
-  revalidatePath(`/messages/${conversationId}`);
+  revalidatePath(MESSAGES_LAYOUT, "layout");
   return { sentAt: Date.now() };
 }

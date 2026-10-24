@@ -1,8 +1,12 @@
 import { type Metadata } from "next";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
-import { pageMessages } from "@/lib/i18n/server";
-
-import { MessagesPage } from "../messages-page";
+import { LoadError } from "@/components/conversations/load-error";
+import { NewConversation } from "@/components/conversations/messages-pages";
+import { loadFamilyId } from "@/lib/families";
+import { pageMessages, requestMessages } from "@/lib/i18n/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({
   params,
@@ -11,6 +15,25 @@ export async function generateMetadata({
   return { title: conversations.newConversation };
 }
 
+// A parent without a family has no one to message yet, so goes to /messages.
+async function NewConversationRoute() {
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims.sub;
+  if (!userId) redirect("/sign-in");
+
+  const familyId = await loadFamilyId(supabase, userId);
+  if (familyId === "error") {
+    return <LoadError message={(await requestMessages()).auth.errors.unexpected} />;
+  }
+  if (familyId === null) redirect("/messages");
+  return <NewConversation />;
+}
+
 export default function NewConversationPage() {
-  return <MessagesPage mode="new" />;
+  return (
+    <Suspense>
+      <NewConversationRoute />
+    </Suspense>
+  );
 }

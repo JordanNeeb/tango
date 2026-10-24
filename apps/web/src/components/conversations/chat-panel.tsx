@@ -2,7 +2,8 @@
 
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useOptimistic, useRef, useState } from "react";
 
 import { sendMessage } from "@/app/[lang]/(app)/messages/actions";
 import { useFocusFirstError } from "@/components/auth/use-focus-first-error";
@@ -23,9 +24,13 @@ import { useDateFormat } from "./use-date-format";
 
 type DateFormat = ReturnType<typeof useDateFormat>;
 
+// A message as shown: one still being sent is shown at once, before the
+// server has it.
+type ShownMessage = ConversationMessage & { sending?: true };
+
 // Consecutive messages from the same day, so each day gets one divider.
-function groupByDay(messages: ConversationMessage[], format: DateFormat) {
-  const groups: { key: string; messages: ConversationMessage[] }[] = [];
+function groupByDay(messages: ShownMessage[], format: DateFormat) {
+  const groups: { key: string; messages: ShownMessage[] }[] = [];
   for (const message of messages) {
     const key = format.dayKey(message.createdAt);
     const last = groups.at(-1);
@@ -62,14 +67,15 @@ function MessageBubble({
   format,
   status,
 }: {
-  message: ConversationMessage;
+  message: ShownMessage;
   names: Record<Sender, string>;
   format: DateFormat;
   // Only for the viewer's latest sent message.
   status?: Partial<Record<MessageStatus, string>>;
 }) {
   // Received messages show when they were sent; the viewer's own show only
-  // the latest one's status.
+  // the latest one's status, or "Sending" until the server has it.
+  const sendingLabel = useMessages().conversations.sending;
   const mine = message.sender === "me";
   return (
     <li className={`flex ${mine ? "justify-end" : ""}`}>
@@ -87,7 +93,11 @@ function MessageBubble({
           {message.body}
         </p>
         {mine ? (
-          status ? <MessageStatusLine status={status} format={format} /> : null
+          message.sending ? (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{sendingLabel}</p>
+          ) : status ? (
+            <MessageStatusLine status={status} format={format} />
+          ) : null
         ) : (
           <time
             dateTime={message.createdAt}
@@ -101,13 +111,30 @@ function MessageBubble({
   );
 }
 
-// Sends one message. React resets the form after each submission, so the text
-// comes back from the result after an error; after a send it clears.
-function Composer({ conversationId }: { conversationId: string }) {
+// Sends one message. The text leaves the composer at once and `onSend` shows
+// it in the conversation while the action runs. React resets the form after
+// each submission, so the text comes back from the result after an error.
+// The action's page render can miss statuses the co-parent records while it
+// runs, and refreshes from those receipts may land before it, so the page
+// refreshes once more after each send.
+function Composer({
+  conversationId,
+  onSend,
+}: {
+  conversationId: string;
+  onSend: (body: string) => void;
+}) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [hasText, setHasText] = useState(false);
   const [state, formAction, pending] = useActionState<ConversationActionResult, FormData>(
     async (previous, formData) => {
+      const body = String(formData.get("body") ?? "").trim();
+      if (body) {
+        onSend(body);
+        formRef.current?.reset();
+        setHasText(false);
+      }
       const result = await sendMessage(previous, formData);
       setHasText(Boolean(result.values?.body));
       return result;
@@ -115,6 +142,10 @@ function Composer({ conversationId }: { conversationId: string }) {
     {},
   );
   useFocusFirstError(formRef, state);
+
+  useEffect(() => {
+    if (state.sentAt) router.refresh();
+  }, [state.sentAt, router]);
 
   return (
     <form
@@ -162,7 +193,20 @@ export function ChatPanel({
     message.sender === "coParent" ? [message.id] : [],
   );
   const coParentKey = coParentIds.join(",");
-  const latestId = conversation.messages.at(-1)?.id;
+  // Messages being sent show at the end until the server's list includes them.
+  const [shown, addSending] = useOptimistic(
+    conversation.messages as ShownMessage[],
+    (list, message: ShownMessage) => [...list, message],
+  );
+  const showSending = (body: string) =>
+    addSending({
+      id: `sending:${crypto.randomUUID()}`,
+      sender: "me",
+      body,
+      createdAt: new Date().toISOString(),
+      sending: true,
+    });
+  const latestId = shown.at(-1)?.id;
 
   useEffect(() => {
     if (coParentKey) recordStatus("delivered", coParentKey.split(","));
@@ -203,9 +247,9 @@ export function ChatPanel({
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8"
+        className="flex-1 overflow-y-auto overscroll-contain px-4 py-6 sm:px-6 lg:px-8"
       >
-        {groupByDay(conversation.messages, format).map((group) => (
+        {groupByDay(shown, format).map((group) => (
           <section key={group.key} className="mt-6 first:mt-0">
             <div className="flex items-center gap-x-4">
               <div
@@ -239,7 +283,7 @@ export function ChatPanel({
         ))}
       </div>
 
-      <Composer conversationId={conversation.id} />
+      <Composer conversationId={conversation.id} onSend={showSending} />
     </div>
   );
 }

@@ -1,8 +1,7 @@
 import { type Metadata } from "next";
 
+import { ConversationsHome } from "@/components/conversations/messages-pages";
 import { pageMessages } from "@/lib/i18n/server";
-
-import { MessagesPage } from "./messages-page";
 
 export async function generateMetadata({
   params,
@@ -12,5 +11,5 @@ export async function generateMetadata({
 }
 
 export default function ConversationsPage() {
-  return <MessagesPage mode="list" />;
+  return <ConversationsHome />;
 }

@@ -30,6 +30,7 @@ export function ComposerField({
         <label htmlFor={id} className="sr-only">
           {messages.composerLabel}
         </label>
+        {/* Grows with its text (field-sizing) up to 4 lines plus padding, then scrolls. */}
         <textarea
           id={id}
           name="body"
@@ -38,9 +39,16 @@ export function ComposerField({
           defaultValue={defaultValue}
           readOnly={pending}
           onChange={(event) => onTextChange(event.target.value.trim() !== "")}
+          onKeyDown={(event) => {
+            // Enter sends and Shift+Enter breaks the line. Enter that ends an
+            // IME composition (accents, CJK input) is left to the IME.
+            if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+            event.preventDefault();
+            if (canSend && !pending) event.currentTarget.form?.requestSubmit();
+          }}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
-          className="block min-h-11 flex-1 resize-none rounded-3xl bg-white px-4 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 aria-invalid:outline-red-500 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500 dark:aria-invalid:outline-red-400"
+          className="block max-h-[calc(4lh+1.25rem)] min-h-11 flex-1 resize-none field-sizing-content overflow-y-auto rounded-3xl bg-white px-4 py-2.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 aria-invalid:outline-red-500 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500 dark:aria-invalid:outline-red-400"
         />
         <button
           type="submit"

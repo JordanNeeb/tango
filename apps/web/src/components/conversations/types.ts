@@ -18,6 +18,8 @@ export type ConversationSummary = {
   id: string;
   subject: string;
   startedBy: Sender;
+  // Has a message from the co-parent this parent hasn't read.
+  unread: boolean;
   latest: ConversationMessage | null;
 };
 
@@ -39,11 +41,11 @@ export type Contact = {
   name: string;
 };
 
-// A paired parent's messages page data, loaded on the server.
-export type FamilyMessages = {
+// What every messages page of a paired parent shares, loaded once by the
+// messages layout.
+export type FamilyConversations = {
   familyId: string;
   // Null when the co-parent hasn't saved a name.
   coParentName: string | null;
   conversations: ConversationSummary[];
-  selected: ConversationDetail | null;
 };
