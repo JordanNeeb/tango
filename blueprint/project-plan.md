@@ -118,8 +118,15 @@ conversations instead of one continuous chat per family.
 - **No editing and no deleting, by anyone, ever**, for messages and subjects.
   Corrections are new messages.
 - Server-assigned timestamps, never device time.
-- Attachments: photos and PDFs, stored permanently, included in exports.
-  **Assumption.**
+- Attachments: photos, videos, PDFs, and Office documents (Word, Excel,
+  PowerPoint), up to 10 files of 50 MB each per message. A message needs text,
+  attachments, or both. Attachments are stored permanently, never modified or
+  deleted, and included in exports. Clicking one opens it in the app when the
+  browser can show it (photos, videos, PDFs) and downloads it otherwise.
+- **Photos and files:** each parent can see every photo and file shared with a
+  co-parent, like and unlike them (a Liked folder), and archive and unarchive
+  them. How a parent organizes files is theirs alone and can always change; it
+  never modifies or deletes the files.
 - **Message status:** each message keeps the server time it was sent and,
   once each, when the receiving parent's app first loaded it (delivered), first
   alerted them to it outside the conversation (received), first showed its
@@ -352,6 +359,8 @@ fee waiver, and professional account.
 - **Conversations:** subject, started by, started at; append-only.
 - **Messages:** append-only; conversation, sender, server timestamp, body,
   attachments, hash chain link, message status (sent, delivered, received, previewed, read, replied).
+- **Attachments:** message, file name, type, size, storage location; append-only.
+  Each parent's likes and archives are separate, changeable records.
 - **Access log:** append-only events: sign-ins, message views, replies,
   exports, professional actions, and call events.
 - **Calls:** call log (caller, callee, start, end, answered, in-call events),

@@ -1,6 +1,6 @@
 # Tango - Project Overview
 
-<!-- blueprint:source-hash ff2c9f4c78dcbaf2919c3a68b6d86727e1747dbcbe5a2f1ff4fd2918fc12b01a -->
+<!-- blueprint:source-hash 2cb09ec9d5263ad57105134a571b98842d725affb53a2d77d9a96c5df89d838f -->
 
 > A Canadian, bilingual co-parenting app (web first, then iOS and Android) that
 > gives separated parents a permanent court-ready record of messages and calls,
@@ -78,10 +78,12 @@ verifiable record), **10-11** (agreement enforcement), **13-15** (real payments)
     - 5c. **Co-parent switching and settings** - header co-parent switcher with two or more co-parents; Settings > Co-parents deletes (hides) after typing the name and restores.
 
 **Messaging**
-6. **Subject conversations** - parent-titled conversations in one scrollable list, never closed; live; server timestamps; message status shown to both; attachments (tier 1 1 GB cap); no edits or deletes.
+6. **Subject conversations** - parent-titled conversations in one scrollable list, never closed; live; server timestamps; message status shown to both; attachments (photos, videos, PDFs, Office; tier 1 1 GB cap); no edits or deletes.
 7. **Access log and tamper evidence** - append-only log of sign-ins, views, replies; hash chain.
 8. **Message search** - EN/FR keyword search over subjects and messages; date, sender, attachment filters; jump to result.
 25. **AI tone meter** - flags hostile wording while writing and suggests a rewrite; never blocks.
+33. **Photos and files** - sidebar lists of all shared attachments.
+34. **Liked and archived files** - per-parent and changeable; files never change.
 
 **Agreements and calendar**
 9. **Shared calendar** - schedule patterns, custom cycles, handoff time, general events.
@@ -105,7 +107,7 @@ verifiable record), **10-11** (agreement enforcement), **13-15** (real payments)
 32. **Signed exports** - Adobe-trusted (AATL) OV organization seal applied by a Supabase Edge Function; the private key never leaves Azure Key Vault.
     - 32a. **Signing key and certificate** - setup guide and check script: RSA key generated in Key Vault (Premium or Managed HSM, FIPS 140-2 L2+) with key attestation; SSL.com OV document signing certificate; issued chain imported into the vault.
     - 32b. **Signing function** - hashes the PDF's signed byte range (SHA-256), signs only the hash in Key Vault via a service principal from Supabase secrets, embeds signature, chain, SSL.com trusted timestamp, and revocation data (LTV) so Acrobat Reader shows a valid seal.
-17. **Court-ready export** - EN/FR PDF of conversations, access log, calls, requests, agreements, payments; sealed by 32 and delivered to web and mobile. Replaces the earlier verification-code and public verification page plan.
+17. **Court-ready export** - EN/FR PDF of conversations, access log, calls, requests, agreements, payments; sealed by 32 and delivered to web and mobile.
 28. **Professional portal** - free accounts, parent invitation per family, granted areas, exports, full logging, revocable.
 18. **Email notifications** - messages, requests, approvals, calls, payments; never message text.
 
@@ -148,7 +150,7 @@ no `UPDATE`/`DELETE` of content.
 - `id`, `family_id`, `conversation_id`, `sender_id`, `body`, `created_at` (server), `seq` (bigint)
 - `prev_hash`, `hash` - chain over (prev_hash, sender, conversation, body, attachments, created_at)
 - search vector covering EN and FR (subject included via conversation)
-- `message_attachments`: `id`, `message_id`, `storage_path`, `mime_type` (image or PDF), `size_bytes`
+- `message_attachments` (append-only): `id`, `message_id`, `storage_path`, `file_name`, `mime_type` (photo, video, PDF, Office), `size_bytes`, `position`
 - `message_receipts` (append-only): `message_id`, `reader_id`, `kind` (`delivered | received | previewed | read | replied`), `created_at`; one per kind
 
 ### access_log (append-only)
@@ -194,7 +196,7 @@ no `UPDATE`/`DELETE` of content.
 - `support_schedules`: `id`, `family_id`, `payer_id`, `payee_id`, `amount_cents`, `frequency`, `start_date`, `version`; both parents accept
 
 ### subscriptions and fee_waivers
-- `subscriptions`: `user_id`, `tier` (`1 | 2 | 3`), `interval` (`month | year`), `status` (`awaiting_coparent | active | lapsed`), `current_period_end`, Stripe customer, payment method, and subscription ids; charging starts when the first family is created
+- `subscriptions`: `user_id`, `tier` (`1 | 2 | 3`), `interval` (`month | year`), `status` (`awaiting_coparent | active | lapsed`), `current_period_end`, Stripe customer, payment method, and subscription ids
 - tier 1 usage: placed call minutes per billing month (video, voice) and document storage bytes (attachments and agreement documents, never receipts)
 - `fee_waivers`: `id`, `user_id`, `reason` (`social_assistance | legal_aid | financial_hardship | safety`, nullable), `note`, `status` (`pending | approved | denied`), `decided_by`, `decided_at`, `starts_on`, `ends_on`
 
@@ -238,10 +240,10 @@ no `UPDATE`/`DELETE` of content.
 
 ## UI/UX
 
-- Design owned by the project owner: every UI element from the Tailwind Plus Catalyst UI kit (`design/references/tailwind-plus/catalyst-ui-kit/`), other Tailwind Plus references only where Catalyst has no fit; colours, logo, and branding set manually.
+- Every UI element from the Catalyst UI kit (`design/references/tailwind-plus/catalyst-ui-kit/`), other Tailwind Plus references only where Catalyst has no fit; the owner sets colours, logo, and branding.
 - All UI, emails, notifications, and exports in English and French. Language menu on landing and auth pages; Settings > Language on the dashboard.
 - `/` landing (signed out), `/dashboard` (signed in); the logo always links home.
-- Main web screens (routes decided in feature specs): family setup and invite, children, conversations with search and tone meter, calls, calendar with requests, agreements, expenses, payments, support schedule, subscription and fee waiver, export, professional portal, Settings (language, Co-parents).
+- Main web screens: family setup and invite, children, conversations with search and tone meter, calls, calendar with requests, agreements, expenses, payments, support schedule, subscription and fee waiver, export, professional portal, Settings (language, Co-parents).
 
 ## Deployment
 
@@ -249,7 +251,7 @@ no `UPDATE`/`DELETE` of content.
 - **Backend:** Supabase `ca-central-1`; staging and production; Supabase CLI locally.
 - **Stripe:** test mode in staging, live in production. **Mobile:** EAS Build and Submit.
 - **Env vars:** Supabase URL and keys, Stripe secret, publishable, and webhook keys, email provider key, Agora app ID and certificate, AI provider key, Azure service principal (tenant ID, client ID, client secret), Key Vault URL and key name.
-- Nothing provisioned yet (Vercel, Supabase staging and production, Stripe, email, Agora, AI provider, Azure Key Vault, SSL.com certificate with organization vetting, domain, Apple and Google developer accounts).
+- Supabase staging exists; not yet provisioned: Vercel, Supabase production, Stripe, Agora, AI provider, Azure Key Vault, SSL.com certificate, domain, Apple and Google developer accounts.
 - **Pre-launch (not features):** Law 25 privacy impact assessment (Stripe, email, push, Agora, AI provider, Supabase subprocessors); privacy policy and terms with recording consent; CGSB-aligned records-management policy; named records custodian and affidavit template; privacy and family-law lawyer review.
 
 > TODO: build/start commands and health path (`/release`).
@@ -271,5 +273,5 @@ no `UPDATE`/`DELETE` of content.
 - **Expense split entry** - stored in agreement terms, but item 10 covers only calendar terms.
 - **Receiving parent not onboarded to Stripe** when an expense is approved.
 - **Family time zone** - who sets it and when.
-- **Assumptions to confirm:** attachments, children fields, access-log visibility, call event detail, professional area limits, Stripe Tax, tier 1 minute reset and at-cap behaviour, 30-day recording deletion notice.
+- **Assumptions to confirm:** children fields, access-log visibility, call event detail, professional area limits, Stripe Tax, tier 1 minute reset and at-cap behaviour, 30-day recording deletion notice.
 - **Record retention** after account closure; launch scale; success criteria; mobile styling, tone, light/dark mode.
