@@ -100,7 +100,7 @@ each time. `/complete` makes the feature commit.
   limits at their exact boundaries, a malformed or traversal path
   (`../x`, `a/b/c`), and both byte formats, and `npm test` passes.
 
-- [ ] **2. Database and storage migration.** Create it with
+- [x] **2. Database and storage migration.** Create it with
   `npx supabase@latest migration new attachments`. Contents:
   - **Bucket.** A private `attachments` bucket with
     `file_size_limit = 52428800` and the allowed MIME list.
